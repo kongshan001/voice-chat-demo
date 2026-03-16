@@ -1,0 +1,21 @@
+[Unit]
+Description=Voice Chat Demo - 语音对话助手
+After=network.target sound.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/voice-chat-demo
+# 环境变量
+Environment=ZHIPU_API_KEY=
+Environment=WHISPER_MODEL=tiny
+ExecStart=/home/pi/voice-chat-demo/start.sh
+Restart=always
+RestartSec=10
+
+# 日志
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

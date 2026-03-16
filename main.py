@@ -3,9 +3,12 @@
 - 连续对话
 - VAD 语音活动检测
 - 流式响应
+- 硬件部署支持
 依赖: pip install faster-whisper zhipuai edge-tts sounddevice numpy webrtcvad
 """
 import os
+import sys
+import argparse
 import asyncio
 from typing import Optional
 from core import ConversationManager, AudioProcessor, TextProcessor, Config
@@ -230,24 +233,53 @@ class VoiceChatApp:
 
 
 # ============ 主流程 ============
-def main():  # pragma: no cover
+def main(argv=None):  # pragma: no cover
     import numpy as np
+    
+    # 解析命令行参数
+    parser = argparse.ArgumentParser(description="语音对话 Demo")
+    parser.add_argument("--api-key", "-k", help="GLM API Key")
+    parser.add_argument("--whisper-model", "-m", default="base", 
+                        choices=["tiny", "base", "small", "medium"],
+                        help="Whisper 模型大小 (默认: base)")
+    parser.add_argument("--optimize-for-pi", action="store_true",
+                        help="为树莓派优化 (使用 tiny 模型)")
+    parser.add_argument("--sample-rate", "-s", type=int, default=16000,
+                        help="音频采样率 (默认: 16000)")
+    args = parser.parse_args(argv)
+    
+    # 树莓派优化模式
+    if args.optimize_for_pi or os.environ.get("RASPBERRY_PI"):
+        print("🍓 树莓派优化模式已启用")
+        args.whisper_model = "tiny"
+    
+    # 合并配置
+    api_key = args.api_key or os.getenv("ZHIPU_API_KEY", "your-api-key-here")
+    whisper_model = args.whisper_model
     
     print("=" * 50)
     print("🎙️ 语音对话 Demo (增强版)")
+    print(f"   模型: whisper-{whisper_model}")
     print("=" * 50)
     
-    if not _config.is_configured:
-        print("⚠️ 请设置环境变量 ZHIPU_API_KEY")
+    if api_key == "your-api-key-here":
+        print("⚠️ 请设置环境变量 ZHIPU_API_KEY 或使用 --api-key 参数")
         return
     
+    # 初始化配置
+    config = Config(
+        api_key=api_key,
+        whisper_model=whisper_model,
+        sample_rate=args.sample_rate
+    )
+    
     # 初始化服务
-    recognizer = WhisperRecognizer(_config.whisper_model, _config.whisper_device)
-    chat_service = GLMChatService(_config.api_key)
+    recognizer = WhisperRecognizer(whisper_model, "cpu")
+    chat_service = GLMChatService(api_key)
     tts_service = EdgeTTSService()
     
     app = VoiceChatApp(
-        config=_config,
+        config=config,
         recognizer=recognizer,
         chat_service=chat_service,
         tts_service=tts_service
@@ -258,7 +290,10 @@ def main():  # pragma: no cover
     print("✅ 模型加载完成\n")
     
     while True:
-        input("▶️ 按 Enter 开始说话...")
+        try:
+            input("▶️ 按 Enter 开始说话...")
+        except EOFError:
+            break
         
         # 1. 录音
         audio_data = record_with_vad(duration=10)
@@ -300,7 +335,10 @@ def main():  # pragma: no cover
             continue
         
         # 4. 语音合成
-        input("🔊 按 Enter 播放语音回复...")
+        try:
+            input("🔊 按 Enter 播放语音回复...")
+        except EOFError:
+            break
         print("🔊 播放中...")
         
         loop = asyncio.new_event_loop()
