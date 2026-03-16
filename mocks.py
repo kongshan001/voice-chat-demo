@@ -3,7 +3,7 @@
 """
 from typing import Optional, Generator, List, Dict
 import numpy as np
-from services import ISpeechRecognizer, IChatService, ITTSService
+from services import ISpeechRecognizer, IChatService, ITTSService, IAudioRecorder
 
 
 class MockSpeechRecognizer(ISpeechRecognizer):
@@ -61,9 +61,21 @@ class MockAudioRecorder:
     """Mock 录音器"""
     
     def __init__(self, mock_audio: Optional[np.ndarray] = None):
-        self.mock_audio = mock_audio or np.random.randint(-1000, 1000, 16000, dtype=np.int16)
+        self.mock_audio = mock_audio if mock_audio is not None else np.random.randint(-1000, 1000, 16000, dtype=np.int16)
         self.record_count = 0
     
     def record(self, duration: float) -> np.ndarray:
+        self.record_count += 1
+        return self.mock_audio
+
+
+class MockAudioRecorderAdapter(IAudioRecorder):
+    """Mock 录音器 (适配器模式)"""
+    
+    def __init__(self, mock_audio: Optional[np.ndarray] = None):
+        self.mock_audio = mock_audio if mock_audio is not None else np.random.randint(-1000, 1000, 16000, dtype=np.int16)
+        self.record_count = 0
+    
+    def record(self, duration: float) -> Optional[np.ndarray]:
         self.record_count += 1
         return self.mock_audio

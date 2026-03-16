@@ -176,10 +176,18 @@ class Config:
     
     # 支持的 TTS 语音
     TTS_VOICES = {
+        # 中文
         "zh-CN-XiaoxiaoNeural": "晓晓 (女声)",
         "zh-CN-YunxiNeural": "云希 (男声)",
         "zh-CN-YunyangNeural": "云扬 (男声)",
+        "zh-CN-YunhaoNeural": "云浩 (男声)",
+        "zh-CN-XiaoyiNeural": "小艺 (女声)",
+        "zh-CN-YunyeNeural": "云野 (情感男声)",
+        # 英文
         "en-US-JennyNeural": "Jenny (英文女声)",
+        "en-US-GuyNeural": "Guy (英文男声)",
+        "en-US-AriaNeural": "Aria (英文女声)",
+        "en-US-SaraNeural": "Sara (英文女声)",
     }
     
     def __init__(
