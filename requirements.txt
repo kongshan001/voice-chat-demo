@@ -3,3 +3,4 @@ zhipuai
 edge-tts
 sounddevice
 numpy
+webrtcvad
