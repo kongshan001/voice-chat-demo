@@ -29,6 +29,10 @@ logger = logging.getLogger(__name__)
 class ConversationManager:
     """对话管理器"""
     
+    # 退出关键词 (类常量)
+    EXIT_KEYWORDS_ZH = ["再见", "退出", "拜拜", "结束"]
+    EXIT_KEYWORDS_EN = ["stop", "quit", "exit", "bye"]
+    
     def __init__(
         self, 
         system_prompt: str = "你是一个友好的AI助手，请用中文简洁回复。",
@@ -76,16 +80,14 @@ class ConversationManager:
         import re
         
         # 中文关键词（任意位置包含即可）
-        exit_keywords = ["再见", "退出", "拜拜", "结束"]
-        for keyword in exit_keywords:
+        for keyword in self.EXIT_KEYWORDS_ZH:
             if keyword in text:
                 logger.info(f"检测到退出关键词: {keyword}")
                 return True
         
         # 英文关键词（单词边界）
-        english_keywords = ["stop", "quit", "exit", "bye"]
         text_lower = text.lower()
-        for keyword in english_keywords:
+        for keyword in self.EXIT_KEYWORDS_EN:
             if re.search(rf'(^|\s){keyword}($|\s)', text_lower):
                 logger.info(f"检测到退出关键词: {keyword}")
                 return True

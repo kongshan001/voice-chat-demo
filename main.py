@@ -195,6 +195,33 @@ class VoiceChatApp:
         if tts_service:
             self.tts_service = tts_service
     
+    @property
+    def recognizer(self) -> ISpeechRecognizer:
+        """获取语音识别服务"""
+        return getattr(self, '_recognizer', None)
+    
+    @recognizer.setter
+    def recognizer(self, value: ISpeechRecognizer):
+        self._recognizer = value
+    
+    @property
+    def chat_service(self) -> IChatService:
+        """获取对话服务"""
+        return getattr(self, '_chat_service', None)
+    
+    @chat_service.setter
+    def chat_service(self, value: IChatService):
+        self._chat_service = value
+    
+    @property
+    def tts_service(self) -> ITTSService:
+        """获取语音合成服务"""
+        return getattr(self, '_tts_service', None)
+    
+    @tts_service.setter
+    def tts_service(self, value: ITTSService):
+        self._tts_service = value
+    
     def process_audio(self, audio) -> Optional[str]:
         """处理音频 -> 文字"""
         if not self.audio_processor.is_valid_audio(audio):
@@ -205,7 +232,7 @@ class VoiceChatApp:
     
     def speech_to_text(self, audio) -> str:
         """语音识别"""
-        if hasattr(self, 'recognizer'):
+        if self.recognizer:
             return self.recognizer.transcribe(audio)
         raise NotImplementedError("Recognizer not configured")
     
@@ -213,7 +240,7 @@ class VoiceChatApp:
         """对话"""
         self.conversation.add_user_message(user_input)
         
-        if hasattr(self, 'chat_service'):
+        if self.chat_service:
             response = self.chat_service.chat(
                 self.conversation.get_messages(),
                 stream_callback
@@ -225,7 +252,7 @@ class VoiceChatApp:
     
     async def synthesize_speech(self, text: str, output_path: str) -> str:
         """语音合成"""
-        if hasattr(self, 'tts_service'):
+        if self.tts_service:
             return await self.tts_service.synthesize(text, output_path)
         raise NotImplementedError("TTS service not configured")
     

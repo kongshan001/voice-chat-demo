@@ -1,0 +1,28 @@
+# 更新日志
+
+All notable changes to this project will be documented in this file.
+
+## [1.1.0] - 2026-03-17
+
+### Added
+- 新增服务错误处理测试 (`tests/test_services.py`)
+- 新增 ConversationManager 退出关键词类常量
+- 新增 VoiceChatApp 属性访问器 (properties)
+- 支持 numpy 2.x 版本
+
+### Changed
+- 优化 `ConversationManager.should_exit()` 使用类常量
+- 优化 `VoiceChatApp` 使用 property 替代 hasattr
+- 放宽 numpy 版本限制
+
+### Fixed
+- 修复潜在的属性检查问题
+
+## [1.0.0] - 2024-01-XX
+
+### Added
+- 初始版本
+- 语音识别 (Faster Whisper)
+- 对话服务 (GLM-4)
+- 语音合成 (Edge TTS)
+- 完整测试套件 (114 tests)
