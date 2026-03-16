@@ -220,6 +220,7 @@ class Config:
         self.temperature = temperature
         self.max_history = max_history
         self.log_level = log_level
+        # 避免重复配置日志
         _setup_logging(log_level)
     
     @property

@@ -74,12 +74,15 @@ class GLMChatService(IChatService):
         self.client = ZhipuAI(api_key=api_key)
     
     def chat(self, messages, stream_callback=None):  # pragma: no cover (需要 API 调用)
-        response = self.client.chat.completions.create(
-            model="glm-4",
-            messages=messages,
-            stream=stream_callback is not None,
-            temperature=0.7
-        )
+        try:
+            response = self.client.chat.completions.create(
+                model="glm-4",
+                messages=messages,
+                stream=stream_callback is not None,
+                temperature=0.7
+            )
+        except Exception as e:
+            raise RuntimeError(f"GLM API 调用失败: {e}") from e
         
         full_response = ""
         

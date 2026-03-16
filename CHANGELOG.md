@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-03-17
+
+### Added
+- 新增优化测试套件 (`tests/test_optimization.py`) - 8个新测试用例
+- 新增 TTS 异步错误处理测试
+- 新增对话管理器边界测试
+- 新增配置多错误验证测试
+
+### Changed
+- 优化 `_setup_logging()` 避免重复调用时的冗余日志配置
+- 优化 `GLMChatService.chat()` 添加 API 错误处理
+- 更新测试统计: 130 tests (原 122 tests)
+
+### Fixed
+- 改进 GLM API 错误提示信息
+
 ## [1.1.0] - 2026-03-17
 
 ### Added
