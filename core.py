@@ -7,13 +7,20 @@ from typing import Optional, Callable, List, Dict, Any
 import numpy as np
 
 # 配置日志 (只在模块级别配置一次)
+_logging_configured = False
+
 def _setup_logging(level: str = "INFO"):
     """设置日志级别"""
+    global _logging_configured
+    if _logging_configured:
+        return
+    
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     logging.getLogger().setLevel(getattr(logging, level.upper(), logging.INFO))
+    _logging_configured = True
 
 _setup_logging()
 logger = logging.getLogger(__name__)

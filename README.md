@@ -177,6 +177,74 @@ A: 尝试使用更小的模型 `tiny`，或降低采样率
 ### Q: 内存不足
 A: 使用 `--optimize-for-pi` 参数，或改用 tiny 模型
 
+## API 使用示例
+
+```python
+from core import Config, VoiceChatApp, ConversationManager, AudioProcessor
+from main import WhisperRecognizer, GLMChatService, EdgeTTSService
+
+# 1. 创建配置
+config = Config(
+    api_key="your-api-key",
+    whisper_model="base",
+    sample_rate=16000
+)
+
+# 2. 验证配置
+errors = config.validate()
+if errors:
+    print(f"配置错误: {errors}")
+    return
+
+# 3. 初始化服务
+recognizer = WhisperRecognizer("base", "cpu")
+chat_service = GLMChatService("your-api-key")
+tts_service = EdgeTTSService()
+
+# 4. 创建应用
+app = VoiceChatApp(
+    config=config,
+    recognizer=recognizer,
+    chat_service=chat_service,
+    tts_service=tts_service
+)
+
+# 5. 加载模型
+recognizer.load_model()
+
+# 6. 对话流程
+user_text = "你好，请介绍一下自己"
+response = app.chat(user_text)
+print(f"AI: {response}")
+
+# 7. 语音合成 (异步)
+import asyncio
+async def synthesize():
+    await app.synthesize_speech(response, "output.mp3")
+asyncio.run(synthesize())
+```
+
+### 纯离线模式 (无需API)
+
+```python
+from core import ConversationManager, AudioProcessor, TextProcessor
+
+# 不需要 API Key 的本地功能
+conversation = ConversationManager()
+audio_processor = AudioProcessor()
+text_processor = TextProcessor()
+
+# 文本处理
+cleaned = text_processor.clean_text("  Hello World  ")
+is_empty = text_processor.is_empty_text("")
+truncated = text_processor.truncate_text("很长很长的文本", max_length=50)
+
+# 对话管理
+conversation.add_user_message("你好")
+conversation.add_assistant_message("你好，有什么可以帮您？")
+messages = conversation.get_messages()
+```
+
 ## 许可证
 
 MIT License
