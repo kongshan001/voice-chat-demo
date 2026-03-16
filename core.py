@@ -6,11 +6,16 @@ import logging
 from typing import Optional, Callable, List, Dict, Any
 import numpy as np
 
-# 配置日志
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# 配置日志 (只在模块级别配置一次)
+def _setup_logging(level: str = "INFO"):
+    """设置日志级别"""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    logging.getLogger().setLevel(getattr(logging, level.upper(), logging.INFO))
+
+_setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -85,27 +90,49 @@ class AudioProcessor:
     """音频处理器"""
     
     def __init__(self, sample_rate: int = 16000, channels: int = 1):
+        if sample_rate <= 0:
+            raise ValueError(f"采样率必须为正数: {sample_rate}")
+        if channels <= 0:
+            raise ValueError(f"通道数必须为正数: {channels}")
+        
         self.sample_rate = sample_rate
         self.channels = channels
     
     def normalize_audio(self, audio: np.ndarray) -> np.ndarray:
         """标准化音频"""
-        if audio.dtype != np.int16:
+        if audio is None or len(audio) == 0:
+            raise ValueError("音频数据为空")
+        
+        # 检查数据类型
+        if audio.dtype not in [np.float32, np.float64, np.int16, np.int32]:
+            raise ValueError(f"不支持的音频数据类型: {audio.dtype}")
+        
+        # 处理 float 类型的归一化
+        if audio.dtype in [np.float32, np.float64]:
+            # 限制范围在 [-1, 1]
+            audio = np.clip(audio, -1.0, 1.0)
             audio = (audio * 32767).astype(np.int16)
+        
         return audio
     
     def is_valid_audio(self, audio: Optional[np.ndarray], min_samples: int = 1600) -> bool:
         """检查音频是否有效"""
         if audio is None:
             return False
+        if not isinstance(audio, np.ndarray):
+            return False
         return len(audio) >= min_samples
     
     def audio_to_bytes(self, audio: np.ndarray) -> bytes:
         """音频转字节"""
+        if audio is None or len(audio) == 0:
+            raise ValueError("音频数据为空")
         return audio.tobytes()
     
     def bytes_to_audio(self, data: bytes) -> np.ndarray:
         """字节转音频"""
+        if data is None or len(data) == 0:
+            raise ValueError("字节数据为空")
         return np.frombuffer(data, dtype=np.int16)
 
 
@@ -184,9 +211,7 @@ class Config:
         self.temperature = temperature
         self.max_history = max_history
         self.log_level = log_level
-        
-        # 配置日志级别
-        logging.getLogger().setLevel(getattr(logging, log_level.upper(), logging.INFO))
+        _setup_logging(log_level)
     
     @property
     def is_configured(self) -> bool:

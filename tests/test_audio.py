@@ -84,3 +84,61 @@ class TestAudioProcessor:
         restored = processor.bytes_to_audio(bytes_data)
         
         assert np.array_equal(original, restored)
+    
+    # ===== 边界条件测试 =====
+    
+    def test_init_invalid_sample_rate(self):
+        """测试无效采样率"""
+        with pytest.raises(ValueError, match="采样率必须为正数"):
+            AudioProcessor(sample_rate=0)
+    
+    def test_init_invalid_channels(self):
+        """测试无效通道数"""
+        with pytest.raises(ValueError, match="通道数必须为正数"):
+            AudioProcessor(channels=-1)
+    
+    def test_normalize_audio_empty(self):
+        """测试空音频"""
+        processor = AudioProcessor()
+        with pytest.raises(ValueError, match="音频数据为空"):
+            processor.normalize_audio(np.array([], dtype=np.int16))
+    
+    def test_normalize_audio_float64(self):
+        """测试 float64 音频"""
+        processor = AudioProcessor()
+        audio = np.array([0.5, -0.5, 0.0], dtype=np.float64)
+        result = processor.normalize_audio(audio)
+        assert result.dtype == np.int16
+    
+    def test_normalize_audio_with_clipping(self):
+        """测试音频裁剪"""
+        processor = AudioProcessor()
+        audio = np.array([2.0, -2.0, 0.5], dtype=np.float32)  # 超出范围
+        result = processor.normalize_audio(audio)
+        assert result.dtype == np.int16
+        # 检查裁剪后的值
+        assert np.max(np.abs(result)) <= 32767
+    
+    def test_normalize_audio_unsupported_dtype(self):
+        """测试不支持的数据类型"""
+        processor = AudioProcessor()
+        audio = np.array([1, 2, 3], dtype=np.uint8)
+        with pytest.raises(ValueError, match="不支持的音频数据类型"):
+            processor.normalize_audio(audio)
+    
+    def test_is_valid_audio_not_numpy(self):
+        """测试非 numpy 数组"""
+        processor = AudioProcessor()
+        assert processor.is_valid_audio([1, 2, 3]) is False
+    
+    def test_audio_to_bytes_empty(self):
+        """测试空音频转字节"""
+        processor = AudioProcessor()
+        with pytest.raises(ValueError, match="音频数据为空"):
+            processor.audio_to_bytes(np.array([], dtype=np.int16))
+    
+    def test_bytes_to_audio_empty(self):
+        """测试空字节转音频"""
+        processor = AudioProcessor()
+        with pytest.raises(ValueError, match="字节数据为空"):
+            processor.bytes_to_audio(b'')
