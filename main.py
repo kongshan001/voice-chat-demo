@@ -11,6 +11,8 @@ import sys
 import argparse
 import asyncio
 from typing import Optional
+import numpy as np
+
 from core import ConversationManager, AudioProcessor, TextProcessor, Config
 from services import ISpeechRecognizer, IChatService, ITTSService
 
