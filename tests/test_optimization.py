@@ -39,9 +39,10 @@ class TestTTSAsyncErrorHandling:
         app = VoiceChatApp(config=config)
         
         import asyncio
+        from core import ServiceNotConfiguredError
         
         async def test():
-            with pytest.raises(NotImplementedError):
+            with pytest.raises(ServiceNotConfiguredError):
                 await app.synthesize_speech("测试", "/tmp/test.mp3")
         
         asyncio.run(test())

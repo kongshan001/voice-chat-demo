@@ -110,26 +110,26 @@ class TestIntegrationScenarios:
     def test_app_error_handling(self):
         """错误处理测试"""
         from main import VoiceChatApp
-        from core import Config
+        from core import Config, ServiceNotConfiguredError
         
         app = VoiceChatApp(config=Config(api_key="test"))
         
         # 测试各个未配置时的错误
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(ServiceNotConfiguredError):
             app.speech_to_text(np.array([1] * 2000))
         
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(ServiceNotConfiguredError):
             app.chat("test")
     
     @pytest.mark.asyncio
     async def test_tts_error_handling(self):
         """TTS 错误处理"""
         from main import VoiceChatApp
-        from core import Config
+        from core import Config, ServiceNotConfiguredError
         
         app = VoiceChatApp(config=Config(api_key="test"))
         
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(ServiceNotConfiguredError):
             await app.synthesize_speech("text", "output.mp3")
     
     def test_conversation_manager_integration(self):

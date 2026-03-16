@@ -112,24 +112,27 @@ class TestVoiceChatAppErrors:
     
     def test_speech_to_text_not_configured(self):
         """测试未配置识别器"""
+        from core import ServiceNotConfiguredError
         app = VoiceChatApp(Config(api_key="test-key"))
         
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(ServiceNotConfiguredError):
             app.speech_to_text(np.array([1] * 2000))
     
     def test_chat_not_configured(self):
         """测试未配置对话服务"""
+        from core import ServiceNotConfiguredError
         app = VoiceChatApp(Config(api_key="test-key"))
         
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(ServiceNotConfiguredError):
             app.chat("hello")
     
     @pytest.mark.asyncio
     async def test_synthesize_not_configured(self):
         """测试未配置 TTS 服务"""
+        from core import ServiceNotConfiguredError
         app = VoiceChatApp(Config(api_key="test-key"))
         
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(ServiceNotConfiguredError):
             await app.synthesize_speech("text", "output.mp3")
 
 

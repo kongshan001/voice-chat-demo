@@ -13,7 +13,7 @@ import asyncio
 from typing import Optional
 import numpy as np
 
-from core import ConversationManager, AudioProcessor, TextProcessor, Config
+from core import ConversationManager, AudioProcessor, TextProcessor, Config, ServiceNotConfiguredError
 from services import ISpeechRecognizer, IChatService, ITTSService
 
 # 默认配置
@@ -237,7 +237,7 @@ class VoiceChatApp:
         """语音识别"""
         if self.recognizer:
             return self.recognizer.transcribe(audio)
-        raise NotImplementedError("Recognizer not configured")
+        raise ServiceNotConfiguredError("Recognizer not configured")
     
     def chat(self, user_input: str, stream_callback=None) -> str:
         """对话"""
@@ -251,13 +251,13 @@ class VoiceChatApp:
             self.conversation.add_assistant_message(response)
             return response
         
-        raise NotImplementedError("Chat service not configured")
+        raise ServiceNotConfiguredError("Chat service not configured")
     
     async def synthesize_speech(self, text: str, output_path: str) -> str:
         """语音合成"""
         if self.tts_service:
             return await self.tts_service.synthesize(text, output_path)
-        raise NotImplementedError("TTS service not configured")
+        raise ServiceNotConfiguredError("TTS service not configured")
     
     def should_exit(self, text: str) -> bool:
         """检查是否退出"""

@@ -14,24 +14,26 @@ class TestServiceErrorHandling:
     
     def test_voice_chat_app_without_services(self):
         """测试未配置服务时的错误处理"""
+        from core import ServiceNotConfiguredError
         config = Config(api_key="test-key")
         app = VoiceChatApp(config)
         
         # 没有配置 recognizer
-        with pytest.raises(NotImplementedError, match="Recognizer not configured"):
+        with pytest.raises(ServiceNotConfiguredError, match="Recognizer not configured"):
             app.speech_to_text(np.array([0] * 16000, dtype=np.int16))
         
         # 没有配置 chat_service
-        with pytest.raises(NotImplementedError, match="Chat service not configured"):
+        with pytest.raises(ServiceNotConfiguredError, match="Chat service not configured"):
             app.chat("hello")
         
         # 没有配置 tts_service - 需要异步测试
         import asyncio
-        with pytest.raises(NotImplementedError, match="TTS service not configured"):
+        with pytest.raises(ServiceNotConfiguredError, match="TTS service not configured"):
             asyncio.run(app.synthesize_speech("test", "/tmp/test.mp3"))
     
     def test_voice_chat_app_with_partial_services(self):
         """测试部分配置服务"""
+        from core import ServiceNotConfiguredError
         config = Config(api_key="test-key")
         mock_recognizer = Mock()
         mock_recognizer.transcribe = Mock(return_value="test transcription")
@@ -43,7 +45,7 @@ class TestServiceErrorHandling:
         assert result == "test transcription"
         
         # chat_service 不可用
-        with pytest.raises(NotImplementedError, match="Chat service not configured"):
+        with pytest.raises(ServiceNotConfiguredError, match="Chat service not configured"):
             app.chat("hello")
     
     def test_recognizer_without_model(self):

@@ -3,8 +3,30 @@
 可测试的业务逻辑抽离
 """
 import logging
+import re
 from typing import Optional, Callable, List, Dict, Any
 import numpy as np
+
+
+# ============ 自定义异常 ============
+class VoiceChatError(Exception):
+    """语音对话基础异常"""
+    pass
+
+
+class AudioProcessingError(VoiceChatError):
+    """音频处理异常"""
+    pass
+
+
+class ConfigurationError(VoiceChatError):
+    """配置异常"""
+    pass
+
+
+class ServiceNotConfiguredError(VoiceChatError):
+    """服务未配置异常"""
+    pass
 
 # 配置日志 (只在模块级别配置一次)
 _logging_configured = False
@@ -77,8 +99,6 @@ class ConversationManager:
     
     def should_exit(self, text: str) -> bool:
         """检查是否应该退出对话"""
-        import re
-        
         # 中文关键词（任意位置包含即可）
         for keyword in self.EXIT_KEYWORDS_ZH:
             if keyword in text:
@@ -228,8 +248,7 @@ class Config:
         self.temperature = temperature
         self.max_history = max_history
         self.log_level = log_level
-        # 避免重复配置日志
-        _setup_logging(log_level)
+        # 日志级别在 _setup_logging 中统一配置
     
     @property
     def is_configured(self) -> bool:
