@@ -6,97 +6,129 @@
 依赖: pip install faster-whisper zhipuai edge-tts sounddevice numpy webrtcvad
 """
 import os
-import io
 import asyncio
-import threading
-import numpy as np
-import sounddevice as sd
-from faster_whisper import WhisperModel
-from zhipuai import ZhipuAI
-import edge_tts
-import webrtcvad
+from typing import Optional
+from core import ConversationManager, AudioProcessor, TextProcessor, Config
+from services import ISpeechRecognizer, IChatService, ITTSService
 
-# ============ 配置 ============
-API_KEY = os.getenv("ZHIPU_API_KEY", "your-api-key-here")
-WHISPER_MODEL = "base"
-WHISPER_DEVICE = "cpu"
-SAMPLE_RATE = 16000
-CHANNELS = 1
+# 默认配置
+_config = Config(
+    api_key=os.getenv("ZHIPU_API_KEY", "your-api-key-here"),
+    whisper_model="base",
+    whisper_device="cpu"
+)
 
-# 对话历史
-conversation_history = [
-    {"role": "system", "content": "你是一个友好的AI助手，请用中文简洁回复。"}
-]
+# 服务提供者 (可替换为 mock)
+_speech_recognizer: Optional[ISpeechRecognizer] = None
+_chat_service: Optional[IChatService] = None
+_tts_service: Optional[ITTSService] = None
 
-# 全局状态
-is_listening = False
-audio_buffer = []
+
+def configure_services(
+    recognizer: ISpeechRecognizer = None,
+    chat_service: IChatService = None,
+    tts_service: ITTSService = None
+):
+    """配置服务提供者 (用于测试注入)"""
+    global _speech_recognizer, _chat_service, _tts_service
+    if recognizer:
+        _speech_recognizer = recognizer
+    if chat_service:
+        _chat_service = chat_service
+    if tts_service:
+        _tts_service = tts_service
+
+
+# ============ 语音识别实现 ============
+class WhisperRecognizer(ISpeechRecognizer):
+    """Whisper 语音识别"""
+    
+    def __init__(self, model_name: str = "base", device: str = "cpu"):
+        self.model_name = model_name
+        self.device = device
+        self.model = None
+    
+    def load_model(self):  # pragma: no cover (需要下载大模型文件)
+        from faster_whisper import WhisperModel
+        self.model = WhisperModel(self.model_name, device=self.device, compute_type="int8")
+    
+    def transcribe(self, audio):  # pragma: no cover (需要实际模型)
+        if self.model is None:
+            self.load_model()
+        segments, _ = self.model.transcribe(audio, language="zh")
+        text = "".join([seg.text for seg in segments])
+        return text.strip()
+
+
+# ============ GLM 对话实现 ============
+class GLMChatService(IChatService):
+    """GLM 对话服务"""
+    
+    def __init__(self, api_key: str):  # pragma: no cover (需要 API 调用)
+        from zhipuai import ZhipuAI
+        self.client = ZhipuAI(api_key=api_key)
+    
+    def chat(self, messages, stream_callback=None):  # pragma: no cover (需要 API 调用)
+        response = self.client.chat.completions.create(
+            model="glm-4",
+            messages=messages,
+            stream=stream_callback is not None,
+            temperature=0.7
+        )
+        
+        full_response = ""
+        
+        if stream_callback:
+            for chunk in response:
+                if chunk.choices[0].delta.content:
+                    content = chunk.choices[0].delta.content
+                    full_response += content
+                    stream_callback(content)
+        else:
+            full_response = response.choices[0].message.content
+        
+        return full_response
+
+
+# ============ Edge TTS 实现 ============
+class EdgeTTSService(ITTSService):
+    """Edge TTS 服务"""
+    
+    def __init__(self, voice: str = "zh-CN-XiaoxiaoNeural"):  # pragma: no cover (需要网络调用)
+        import edge_tts
+        self.voice = voice
+        self.communicate = edge_tts.Communicate
+    
+    async def synthesize(self, text: str, output_path: str) -> str:  # pragma: no cover (需要网络调用)
+        communicate = self.communicate(text, self.voice)
+        await communicate.save(output_path)
+        return output_path
 
 
 # ============ VAD 录音 ============
-def vad_collector(sample_rate, padding_duration=300, ratio=0.75):
-    """
-    VAD 语音活动检测收集器
-    padding_duration: 静音阈值(毫秒)，超过则结束
-    ratio: 语音比例阈值
-    """
-    vad = webrtcvad.Vad(3)  # 激进模式
-    num_padding_frames = int(padding_duration / 1000 * sample_rate / 1000)
-    ring_buffer = []
-    triggered = False
-    voiced_frames = []
-    
-    for frame in audio_buffer:
-        if len(frame) < 640:
-            continue
-            
-        is_speech = vad.is_speech(frame, sample_rate)
-        
-        if not triggered:
-            ring_buffer.append(frame)
-            if len(ring_buffer) > num_padding_frames:
-                ring_buffer.pop(0)
-            num_voiced = len([f for f in ring_buffer if f])
-            if num_voiced > ratio * num_padding_frames:
-                triggered = True
-                voiced_frames.extend(ring_buffer)
-                ring_buffer = []
-        else:
-            voiced_frames.append(frame)
-            ring_buffer = []
-            if not is_speech:
-                num_voiced = len([f for f in ring_buffer if f])
-                if num_voiced == 0:
-                    break
-    
-    if triggered:
-        return b''.join(voiced_frames)
-    return None
-
-
-def record_with_vad(duration=10):
-    """带 VAD 的录音"""
-    global audio_buffer, is_listening
+def record_with_vad(duration=10, sample_rate=16000, channels=1):  # pragma: no cover
+    """带 VAD 的录音 (需要麦克风硬件，无法单元测试)"""
+    import webrtcvad
+    import sounddevice as sd
     
     audio_buffer = []
     is_listening = True
     
-    print("🎤 .listenening for speech... (say something)")
+    vad = webrtcvad.Vad(3)
     
     def callback(indata, frames, time, status):
         if status:
-            print(status)
+            pass
         audio_buffer.append(indata.tobytes())
     
     stream = sd.InputStream(
         callback=callback,
-        channels=CHANNELS,
-        samplerate=SAMPLE_RATE,
+        channels=channels,
+        samplerate=sample_rate,
         blocksize=320
     )
     
     with stream:
-        # 等待录音或超时
         import time
         start_time = time.time()
         while time.time() - start_time < duration:
@@ -104,108 +136,131 @@ def record_with_vad(duration=10):
                 break
             time.sleep(0.1)
     
-    # 等待一点尾音
-    import time
     time.sleep(0.3)
     is_listening = False
     
-    # 处理 VAD
-    if len(audio_buffer) > 0:
+    if audio_buffer:
         audio_data = b''.join(audio_buffer)
         return np.frombuffer(audio_data, dtype=np.int16)
     return None
 
 
-def simple_record(duration=5):
-    """简单录音（备用）"""
+def simple_record(duration=5, sample_rate=16000, channels=1):  # pragma: no cover
+    """简单录音 (需要麦克风硬件，无法单元测试)"""
+    import sounddevice as sd
+    import numpy as np
+    
     print(f"🎤 录音中... ({duration}秒)")
-    audio = sd.rec(int(duration * SAMPLE_RATE), samplerate=SAMPLE_RATE, channels=CHANNELS, dtype=np.float32)
+    audio = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=channels, dtype=np.float32)
     sd.wait()
     return (audio * 32767).astype(np.int16)
 
 
-# ============ 语音识别 ============
-def speech_to_text(audio_data):
-    """语音转文字"""
-    if audio_data is None or len(audio_data) < 1600:
-        return None
-        
-    model = WhisperModel(WHISPER_MODEL, device=WHISPER_DEVICE, compute_type="int8")
-    segments, _ = model.transcribe(audio_data, language="zh")
-    text = "".join([seg.text for seg in segments])
-    return text.strip()
-
-
-# ============ GLM 对话 (流式) ============
-def chat_with_glm_stream(user_input, callback):
-    """流式调用 GLM API"""
-    client = ZhipuAI(api_key=API_KEY)
-    
-    conversation_history.append({"role": "user", "content": user_input})
-    
-    full_response = ""
-    
-    response = client.chat.completions.create(
-        model="glm-4",
-        messages=conversation_history,
-        stream=True,
-        temperature=0.7
-    )
-    
-    for chunk in response:
-        if chunk.choices[0].delta.content:
-            content = chunk.choices[0].delta.content
-            full_response += content
-            callback(content)  # 流式输出回调
-    
-    conversation_history.append({"role": "assistant", "content": full_response})
-    return full_response
-
-
-# ============ 语音合成 (流式播放) ============
-async def text_to_speech_stream(text):
-    """流式语音合成 + 播放"""
-    communicate = edge_tts.Communicate(text, "zh-CN-XiaoxiaoNeural")
-    
-    # 临时文件
-    output_file = "/tmp/reply.mp3"
-    
-    await communicate.save(output_file)
-    return output_file
-
-
-def play_audio(file_path):
-    """播放音频"""
-    import subprocess
+def play_audio(file_path):  # pragma: no cover
+    """播放音频 (需要扬声器硬件，无法单元测试)"""
+    import os
     if os.name == "nt":
         import winsound
         winsound.PlaySound(file_path, winsound.SND_FILENAME)
     else:
-        # Mac/Linux 播放
-        os.system(f"afplay {file_path} 2>/dev/null || aplay {file_path} 2>/dev/null || mpg123 {file_path} 2>/dev/null")
+        os.system(f"afplay {file_path} 2>/dev/null || aplay {file_path} 2>/dev/null")
+
+
+# ============ 业务逻辑 (可测试) ============
+class VoiceChatApp:
+    """语音对话应用"""
+    
+    def __init__(
+        self,
+        config: Config,
+        recognizer: ISpeechRecognizer = None,
+        chat_service: IChatService = None,
+        tts_service: ITTSService = None
+    ):
+        self.config = config
+        self.conversation = ConversationManager()
+        self.audio_processor = AudioProcessor(config.sample_rate, config.channels)
+        self.text_processor = TextProcessor()
+        
+        # 注入服务
+        if recognizer:
+            self.recognizer = recognizer
+        if chat_service:
+            self.chat_service = chat_service
+        if tts_service:
+            self.tts_service = tts_service
+    
+    def process_audio(self, audio) -> Optional[str]:
+        """处理音频 -> 文字"""
+        if not self.audio_processor.is_valid_audio(audio):
+            return None
+        
+        audio = self.audio_processor.normalize_audio(audio)
+        return self.speech_to_text(audio)
+    
+    def speech_to_text(self, audio) -> str:
+        """语音识别"""
+        if hasattr(self, 'recognizer'):
+            return self.recognizer.transcribe(audio)
+        raise NotImplementedError("Recognizer not configured")
+    
+    def chat(self, user_input: str, stream_callback=None) -> str:
+        """对话"""
+        self.conversation.add_user_message(user_input)
+        
+        if hasattr(self, 'chat_service'):
+            response = self.chat_service.chat(
+                self.conversation.get_messages(),
+                stream_callback
+            )
+            self.conversation.add_assistant_message(response)
+            return response
+        
+        raise NotImplementedError("Chat service not configured")
+    
+    async def synthesize_speech(self, text: str, output_path: str) -> str:
+        """语音合成"""
+        if hasattr(self, 'tts_service'):
+            return await self.tts_service.synthesize(text, output_path)
+        raise NotImplementedError("TTS service not configured")
+    
+    def should_exit(self, text: str) -> bool:
+        """检查是否退出"""
+        return self.conversation.should_exit(text)
 
 
 # ============ 主流程 ============
-def main():
+def main():  # pragma: no cover
+    import numpy as np
+    
     print("=" * 50)
     print("🎙️ 语音对话 Demo (增强版)")
-    print("   - 按 Enter 开始录音")
-    print("   - 说 '再见' 退出")
     print("=" * 50)
     
-    if API_KEY == "your-api-key-here":
+    if not _config.is_configured:
         print("⚠️ 请设置环境变量 ZHIPU_API_KEY")
         return
     
-    # 预加载 Whisper 模型
+    # 初始化服务
+    recognizer = WhisperRecognizer(_config.whisper_model, _config.whisper_device)
+    chat_service = GLMChatService(_config.api_key)
+    tts_service = EdgeTTSService()
+    
+    app = VoiceChatApp(
+        config=_config,
+        recognizer=recognizer,
+        chat_service=chat_service,
+        tts_service=tts_service
+    )
+    
     print("📥 加载 Whisper 模型...")
-    model = WhisperModel(WHISPER_MODEL, device=WHISPER_DEVICE, compute_type="int8")
+    recognizer.load_model()
     print("✅ 模型加载完成\n")
     
     while True:
         input("▶️ 按 Enter 开始说话...")
         
-        # 1. 录音 (带 VAD)
+        # 1. 录音
         audio_data = record_with_vad(duration=10)
         
         if audio_data is None or len(audio_data) < 1600:
@@ -214,7 +269,7 @@ def main():
         
         # 2. 语音识别
         print("📝 识别中...")
-        user_text = speech_to_text(audio_data)
+        user_text = app.process_audio(audio_data)
         
         if not user_text:
             print("❌ 识别失败\n")
@@ -223,7 +278,7 @@ def main():
         print(f"👤 你说: {user_text}")
         
         # 检查退出
-        if "再见" in user_text or "退出" in user_text or "拜拜" in user_text:
+        if app.should_exit(user_text):
             print("👋 再见!")
             break
         
@@ -238,24 +293,24 @@ def main():
             print(text, end="", flush=True)
         
         try:
-            chat_with_glm_stream(user_text, stream_callback)
+            app.chat(user_text, stream_callback)
             print("\n")
         except Exception as e:
             print(f"\n❌ API 错误: {e}")
             continue
         
-        # 4. 语音合成 (用户按任意键后播放)
+        # 4. 语音合成
         input("🔊 按 Enter 播放语音回复...")
         print("🔊 播放中...")
         
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        audio_file = loop.run_until_complete(text_to_speech_stream(accumulated_reply))
+        audio_file = loop.run_until_complete(app.synthesize_speech(accumulated_reply, "/tmp/reply.mp3"))
         loop.close()
         
         play_audio(audio_file)
         print("-" * 50)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

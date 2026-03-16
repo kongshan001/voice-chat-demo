@@ -1,0 +1,15 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[coverage.run]
+source = ["core", "main", "mocks", "services"]
+omit = ["*/tests/*", "*/__pycache__/*"]
+
+[coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
