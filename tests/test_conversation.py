@@ -106,3 +106,31 @@ class TestConversationManager:
         
         # system + 5轮对话 = 11条
         assert len(manager.history) == 11
+    
+    def test_history_limit(self):
+        """测试历史记录限制"""
+        manager = ConversationManager(max_history=3)
+        
+        # 添加 5 轮对话 (10 条消息)
+        for i in range(5):
+            manager.add_user_message(f"用户 {i}")
+            manager.add_assistant_message(f"助手 {i}")
+        
+        # 应该只保留 system + 最近 3 轮 (7 条)
+        assert len(manager.history) == 7
+        
+        # 验证包含最新的对话
+        assert "用户 4" in [m["content"] for m in manager.history if m["role"] == "user"]
+        # 最旧的用户消息应该被修剪掉
+        assert "用户 0" not in [m["content"] for m in manager.history if m["role"] == "user"]
+    
+    def test_clear_history_with_max_history(self):
+        """测试清空历史后保留限制"""
+        manager = ConversationManager(max_history=5)
+        
+        manager.add_user_message("test")
+        manager.clear_history()
+        
+        # 清空后应该保留 system 和限制设置
+        assert len(manager.history) == 1
+        assert manager.max_history == 5

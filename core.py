@@ -2,23 +2,54 @@
 语音对话核心模块
 可测试的业务逻辑抽离
 """
-from typing import Optional, Callable, List, Dict
+import logging
+from typing import Optional, Callable, List, Dict, Any
 import numpy as np
+
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 class ConversationManager:
     """对话管理器"""
     
-    def __init__(self, system_prompt: str = "你是一个友好的AI助手，请用中文简洁回复。"):
+    def __init__(
+        self, 
+        system_prompt: str = "你是一个友好的AI助手，请用中文简洁回复。",
+        max_history: int = 20
+    ):
+        """
+        初始化对话管理器
+        
+        Args:
+            system_prompt: 系统提示词
+            max_history: 最大历史记录轮数 (每轮包含 user + assistant)
+        """
         self.history: List[Dict[str, str]] = [
             {"role": "system", "content": system_prompt}
         ]
+        self.max_history = max_history
     
     def add_user_message(self, content: str) -> None:
         self.history.append({"role": "user", "content": content})
+        self._trim_history()
     
     def add_assistant_message(self, content: str) -> None:
         self.history.append({"role": "assistant", "content": content})
+        self._trim_history()
+    
+    def _trim_history(self) -> None:
+        """修剪历史记录，保持 max_history 轮对话"""
+        # system + max_history * 2 (user + assistant)
+        max_entries = 1 + (self.max_history * 2)
+        if len(self.history) > max_entries:
+            # 保留 system，移除最旧的对话
+            self.history = [self.history[0]] + self.history[-(self.max_history * 2):]
+            logger.debug(f"历史记录已修剪，保留最近 {self.max_history} 轮对话")
     
     def get_messages(self) -> List[Dict[str, str]]:
         return self.history
@@ -26,6 +57,7 @@ class ConversationManager:
     def clear_history(self) -> None:
         """清空对话历史，保留 system"""
         self.history = [self.history[0]]
+        logger.info("对话历史已清空")
     
     def should_exit(self, text: str) -> bool:
         """检查是否应该退出对话"""
@@ -35,6 +67,7 @@ class ConversationManager:
         exit_keywords = ["再见", "退出", "拜拜", "结束"]
         for keyword in exit_keywords:
             if keyword in text:
+                logger.info(f"检测到退出关键词: {keyword}")
                 return True
         
         # 英文关键词（单词边界）
@@ -42,6 +75,7 @@ class ConversationManager:
         text_lower = text.lower()
         for keyword in english_keywords:
             if re.search(rf'(^|\s){keyword}($|\s)', text_lower):
+                logger.info(f"检测到退出关键词: {keyword}")
                 return True
         
         return False
@@ -101,6 +135,17 @@ class TextProcessor:
 class Config:
     """配置类"""
     
+    # 支持的 Whisper 模型
+    WHISPER_MODELS = ["tiny", "base", "small", "medium", "large"]
+    
+    # 支持的 TTS 语音
+    TTS_VOICES = {
+        "zh-CN-XiaoxiaoNeural": "晓晓 (女声)",
+        "zh-CN-YunxiNeural": "云希 (男声)",
+        "zh-CN-YunyangNeural": "云扬 (男声)",
+        "en-US-JennyNeural": "Jenny (英文女声)",
+    }
+    
     def __init__(
         self,
         api_key: str = "",
@@ -108,16 +153,82 @@ class Config:
         whisper_device: str = "cpu",
         sample_rate: int = 16000,
         channels: int = 1,
-        vad_aggressiveness: int = 3
+        vad_aggressiveness: int = 3,
+        tts_voice: str = "zh-CN-XiaoxiaoNeural",
+        temperature: float = 0.7,
+        max_history: int = 20,
+        log_level: str = "INFO"
     ):
+        """
+        初始化配置
+        
+        Args:
+            api_key: GLM API Key
+            whisper_model: Whisper 模型大小
+            whisper_device: 运行设备 (cpu/cuda)
+            sample_rate: 音频采样率
+            channels: 音频通道数
+            vad_aggressiveness: VAD 激进度 (0-3)
+            tts_voice: TTS 语音选择
+            temperature: 模型温度参数
+            max_history: 最大对话历史轮数
+            log_level: 日志级别
+        """
         self.api_key = api_key
         self.whisper_model = whisper_model
         self.whisper_device = whisper_device
         self.sample_rate = sample_rate
         self.channels = channels
         self.vad_aggressiveness = vad_aggressiveness
+        self.tts_voice = tts_voice
+        self.temperature = temperature
+        self.max_history = max_history
+        self.log_level = log_level
+        
+        # 配置日志级别
+        logging.getLogger().setLevel(getattr(logging, log_level.upper(), logging.INFO))
     
     @property
     def is_configured(self) -> bool:
         """检查是否配置完成"""
         return bool(self.api_key and self.api_key != "your-api-key-here")
+    
+    def validate(self) -> List[str]:
+        """
+        验证配置，返回错误列表
+        
+        Returns:
+            错误消息列表，空列表表示配置有效
+        """
+        errors = []
+        
+        # 检查 API Key
+        if not self.api_key:
+            errors.append("API Key 未设置")
+        elif self.api_key == "your-api-key-here":
+            errors.append("API Key 是占位符，请设置有效的 API Key")
+        
+        # 检查 Whisper 模型
+        if self.whisper_model not in self.WHISPER_MODELS:
+            errors.append(f"不支持的 Whisper 模型: {self.whisper_model}")
+        
+        # 检查 TTS 语音
+        if self.tts_voice not in self.TTS_VOICES:
+            errors.append(f"不支持的 TTS 语音: {self.tts_voice}")
+        
+        # 检查采样率
+        if self.sample_rate not in [8000, 16000, 22050, 44100, 48000]:
+            logger.warning(f"非标准采样率: {self.sample_rate}")
+        
+        # 检查 VAD 激进度
+        if not 0 <= self.vad_aggressiveness <= 3:
+            errors.append(f"VAD 激进度超出范围: {self.vad_aggressiveness}")
+        
+        # 检查温度参数
+        if not 0 <= self.temperature <= 2:
+            errors.append(f"温度参数超出范围: {self.temperature}")
+        
+        if errors:
+            logger.error(f"配置验证失败: {errors}")
+        
+        return errors
