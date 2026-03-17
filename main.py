@@ -6,6 +6,7 @@
 - 硬件部署支持
 依赖: pip install faster-whisper zhipuai edge-tts sounddevice numpy webrtcvad
 """
+import logging
 import os
 import sys
 import argparse
@@ -18,6 +19,9 @@ import numpy as np
 from core import ConversationManager, AudioProcessor, TextProcessor, Config, ServiceNotConfiguredError
 from services import ISpeechRecognizer, IChatService, ITTSService, IAudioRecorder
 
+# 配置日志
+logger = logging.getLogger(__name__)
+
 # 类型别名
 Messages = List[Dict[str, str]]
 StreamCallback = Optional[Callable[[str], None]]
@@ -29,10 +33,10 @@ _tts_service: Optional[ITTSService] = None
 
 
 def configure_services(
-    recognizer: ISpeechRecognizer = None,
-    chat_service: IChatService = None,
-    tts_service: ITTSService = None
-):
+    recognizer: Optional[ISpeechRecognizer] = None,
+    chat_service: Optional[IChatService] = None,
+    tts_service: Optional[ITTSService] = None
+) -> None:
     """配置服务提供者 (用于测试注入)"""
     global _speech_recognizer, _chat_service, _tts_service
     if recognizer:
