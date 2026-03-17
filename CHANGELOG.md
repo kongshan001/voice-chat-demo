@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.1] - 2026-03-17
+
+### Changed
+- 优化 `AudioProcessor.__init__()` 添加完整文档字符串
+- 优化 `TextProcessor` 静态方法添加完整文档字符串
+- 改进空文本处理的健壮性
+
 ## [1.2.0] - 2026-03-17
 
 ### Added

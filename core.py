@@ -119,6 +119,16 @@ class AudioProcessor:
     """音频处理器"""
     
     def __init__(self, sample_rate: int = 16000, channels: int = 1):
+        """
+        初始化音频处理器
+        
+        Args:
+            sample_rate: 采样率 (Hz)
+            channels: 通道数 (1=单声道, 2=立体声)
+            
+        Raises:
+            ValueError: 参数无效时抛出
+        """
         if sample_rate <= 0:
             raise ValueError(f"采样率必须为正数: {sample_rate}")
         if channels <= 0:
@@ -169,20 +179,47 @@ class TextProcessor:
     """文本处理器"""
     
     @staticmethod
-    def clean_text(text: str) -> str:
-        """清理文本"""
+    def clean_text(text: Optional[str]) -> str:
+        """
+        清理文本
+        
+        Args:
+            text: 待清理的文本
+            
+        Returns:
+            清理后的文本
+        """
         if not text:
             return ""
         return text.strip()
     
     @staticmethod
     def is_empty_text(text: Optional[str]) -> bool:
-        """检查是否为空文本"""
+        """
+        检查是否为空文本
+        
+        Args:
+            text: 待检查的文本
+            
+        Returns:
+            True 表示空文本
+        """
         return not text or not text.strip()
     
     @staticmethod
     def truncate_text(text: str, max_length: int = 1000) -> str:
-        """截断文本"""
+        """
+        截断文本
+        
+        Args:
+            text: 待截断的文本
+            max_length: 最大长度
+            
+        Returns:
+            截断后的文本
+        """
+        if not text:
+            return ""
         if len(text) <= max_length:
             return text
         return text[:max_length] + "..."
