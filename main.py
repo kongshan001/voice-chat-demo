@@ -277,7 +277,6 @@ def simple_record(duration=5, sample_rate=16000, channels=1):  # pragma: no cove
         RuntimeError: 录音设备错误
     """
     import sounddevice as sd
-    import numpy as np
     
     try:
         print(f"🎤 录音中... ({duration}秒)")
@@ -298,7 +297,6 @@ def play_audio(file_path):  # pragma: no cover
         FileNotFoundError: 文件不存在
         RuntimeError: 播放失败
     """
-    import os
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"音频文件不存在: {file_path}")
     
@@ -391,8 +389,6 @@ class VoiceChatApp:
 
 # ============ 主流程 ============
 def main(argv=None):  # pragma: no cover
-    import numpy as np
-    
     # 解析命令行参数
     parser = argparse.ArgumentParser(description="语音对话 Demo")
     parser.add_argument("--api-key", "-k", help="GLM API Key")
