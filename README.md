@@ -264,6 +264,22 @@ conversation.add_assistant_message("你好，有什么可以帮您？")
 messages = conversation.get_messages()
 ```
 
+## 新增功能 (v1.1.0)
+
+### API 重试机制
+- GLM 对话服务默认支持 3 次重试
+- 可配置重试次数和超时时间
+- 自动处理网络超时和连接失败
+
+### 新增异常类
+- `TranscriptionError` - 语音识别异常
+- `ChatError` - 对话服务异常
+- `SynthesisError` - 语音合成异常
+
+### 测试覆盖
+- 新增 12 个测试用例
+- 总测试数: 187
+
 ## 许可证
 
 MIT License

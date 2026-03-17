@@ -28,6 +28,21 @@ class ServiceNotConfiguredError(VoiceChatError):
     """服务未配置异常"""
     pass
 
+
+class TranscriptionError(VoiceChatError):
+    """语音识别异常"""
+    pass
+
+
+class ChatError(VoiceChatError):
+    """对话服务异常"""
+    pass
+
+
+class SynthesisError(VoiceChatError):
+    """语音合成异常"""
+    pass
+
 # 配置日志 (只在模块级别配置一次)
 _logging_configured = False
 

@@ -72,17 +72,23 @@ class WhisperRecognizer(ISpeechRecognizer):
 class GLMChatService(IChatService):
     """GLM 对话服务"""
     
+    DEFAULT_TIMEOUT = 60
+    MAX_RETRIES = 3
+    RETRY_DELAY = 1  # seconds
+    
     def __init__(self, api_key: str):  # pragma: no cover (需要 API 调用)
         from zhipuai import ZhipuAI
         self.client = ZhipuAI(api_key=api_key)
     
-    def chat(self, messages, stream_callback=None, timeout: int = 60):  # pragma: no cover (需要 API 调用)
-        """对话 (支持超时设置)
+    def chat(self, messages, stream_callback=None, timeout: int = None, 
+             max_retries: int = None) -> str:  # pragma: no cover (需要 API 调用)
+        """对话 (支持超时设置和重试)
         
         Args:
             messages: 对话消息列表
             stream_callback: 流式响应回调
             timeout: 超时秒数 (默认60秒)
+            max_retries: 最大重试次数 (默认3次)
             
         Raises:
             ValueError: 消息列表为空
@@ -94,6 +100,28 @@ class GLMChatService(IChatService):
         if not messages:
             raise ValueError("消息列表不能为空")
         
+        timeout = timeout or self.DEFAULT_TIMEOUT
+        max_retries = max_retries if max_retries is not None else self.MAX_RETRIES
+        last_error = None
+        
+        for attempt in range(max_retries):
+            try:
+                return self._do_chat(messages, stream_callback, timeout)
+            except (TimeoutError, ConnectionError) as e:
+                last_error = e
+                if attempt < max_retries - 1:
+                    logger.warning(f"API 请求失败 (尝试 {attempt + 1}/{max_retries}), {self.RETRY_DELAY}秒后重试...")
+                    import time
+                    time.sleep(self.RETRY_DELAY)
+                continue
+            except Exception as e:
+                raise RuntimeError(f"GLM API 调用失败: {e}") from e
+        
+        # 所有重试都失败
+        raise last_error or RuntimeError("GLM API 调用失败")
+    
+    def _do_chat(self, messages, stream_callback, timeout: int) -> str:
+        """执行实际的 API 调用"""
         try:
             response = self.client.chat.completions.create(
                 model="glm-4",
