@@ -143,7 +143,14 @@ class AudioProcessor:
         self.channels = channels
     
     def normalize_audio(self, audio: np.ndarray) -> np.ndarray:
-        """标准化音频"""
+        """标准化音频
+        
+        Args:
+            audio: 输入音频数据 (float32/float64/int16/int32)
+            
+        Returns:
+            标准化后的 int16 音频数据
+        """
         if audio is None or len(audio) == 0:
             raise ValueError("音频数据为空")
         
