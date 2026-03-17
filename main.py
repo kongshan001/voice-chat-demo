@@ -12,8 +12,6 @@ import sys
 import argparse
 import asyncio
 import time
-import requests
-import aiohttp
 from typing import Optional, Callable, List, Dict, Any
 import numpy as np
 

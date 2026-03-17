@@ -24,14 +24,9 @@ class TestPlayAudioErrorHandling:
 
 
 class TestGLMServiceImport:
-    """测试 GLM 服务模块级导入"""
+    """测试 GLM 服务模块级导入 (已优化移至 services.py)"""
     
-    def test_requests_imported(self):
-        """验证 requests 已导入"""
-        import main
-        assert hasattr(main, 'requests')
-    
-    def test_aiohttp_imported(self):
-        """验证 aiohttp 已导入"""
-        import main
-        assert hasattr(main, 'aiohttp')
+    def test_services_imported(self):
+        """验证 services 模块已导入"""
+        from services import GLMChatService
+        assert GLMChatService is not None

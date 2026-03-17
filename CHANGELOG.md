@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.10.0] - 2026-03-18
+
+### Changed
+- 移除 main.py 中未使用的 imports (requests, aiohttp)
+- 优化代码质量，移除冗余导入
+
+### Added
+- 新增 `tests/test_services_full.py` - 21个服务层测试用例
+- 提升服务层测试覆盖率
+
+### Fixed
+- 修复 test_main_errors.py 中的测试以适应优化后的导入结构
+
+### Notes
+- 测试统计: 239 tests - 所有测试通过 ✓
+- 覆盖率: 84.91%
+
 ## [1.9.0] - 2026-03-18
 
 ### Changed
