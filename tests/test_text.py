@@ -82,3 +82,23 @@ class TestTextProcessor:
         text = "Hello"
         result = processor.truncate_text(text, 0)
         assert result == "..."
+    
+    def test_is_chinese_with_chinese(self):
+        """测试包含中文"""
+        processor = TextProcessor()
+        assert processor.is_chinese("你好") is True
+        assert processor.is_chinese("Hello 你好") is True
+        assert processor.is_chinese("中文123") is True
+    
+    def test_is_chinese_without_chinese(self):
+        """测试不包含中文"""
+        processor = TextProcessor()
+        assert processor.is_chinese("Hello") is False
+        assert processor.is_chinese("12345") is False
+        assert processor.is_chinese("!@#$%") is False
+    
+    def test_is_chinese_empty(self):
+        """测试空文本"""
+        processor = TextProcessor()
+        assert processor.is_chinese("") is False
+        assert processor.is_chinese(None) is False

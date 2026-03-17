@@ -122,7 +122,6 @@ class GLMChatService(IChatService):
     
     def _do_chat(self, messages, stream_callback, timeout: int) -> str:
         """执行实际的 API 调用"""
-        import aiohttp
         try:
             response = self.client.chat.completions.create(
                 model="glm-4",
@@ -337,10 +336,20 @@ class VoiceChatApp:
         return self.speech_to_text(audio)
     
     def speech_to_text(self, audio) -> str:
-        """语音识别"""
-        if self.recognizer:
+        """语音识别
+        
+        Raises:
+            ServiceNotConfiguredError: 识别服务未配置
+            TranscriptionError: 识别失败
+        """
+        if not self.recognizer:
+            raise ServiceNotConfiguredError("Recognizer not configured")
+        
+        try:
             return self.recognizer.transcribe(audio)
-        raise ServiceNotConfiguredError("Recognizer not configured")
+        except Exception as e:
+            logger.error(f"语音识别失败: {e}")
+            raise TranscriptionError(f"语音识别失败: {e}") from e
     
     def chat(self, user_input: str, stream_callback=None) -> str:
         """对话"""
