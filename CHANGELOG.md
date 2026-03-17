@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2026-03-17
+
+### Added
+- 新增 `tests/test_main_functions.py` - main.py 函数测试套件
+- 新增 WhisperRecognizer 初始化测试
+- 新增 EdgeTTSService 初始化测试
+- 新增 GLMChatService 初始化测试
+- 新增 play_audio 错误处理测试
+
+### Changed
+- 优化 AudioProcessor.normalize_audio 文档字符串
+- 测试统计: 170 tests -> 179 tests
+
 ## [1.4.0] - 2026-03-17
 
 ### Added
