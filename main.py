@@ -18,7 +18,7 @@ from typing import Optional, Callable, List, Dict, Any
 import numpy as np
 
 from core import ConversationManager, AudioProcessor, TextProcessor, Config, ServiceNotConfiguredError, TranscriptionError
-from services import ISpeechRecognizer, IChatService, ITTSService, IAudioRecorder
+from services import ISpeechRecognizer, IChatService, ITTSService, IAudioRecorder, WhisperRecognizer, GLMChatService, EdgeTTSService
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -49,163 +49,18 @@ def configure_services(
 
 
 # ============ 语音识别实现 ============
-class WhisperRecognizer(ISpeechRecognizer):
-    """Whisper 语音识别"""
-    
-    def __init__(self, model_name: str = "base", device: str = "cpu"):
-        self.model_name = model_name
-        self.device = device
-        self.model = None
-    
-    def load_model(self):  # pragma: no cover (需要下载大模型文件)
-        from faster_whisper import WhisperModel
-        self.model = WhisperModel(self.model_name, device=self.device, compute_type="int8")
-    
-    def transcribe(self, audio):  # pragma: no cover (需要实际模型)
-        if self.model is None:
-            self.load_model()
-        segments, _ = self.model.transcribe(audio, language="zh")
-        text = "".join([seg.text for seg in segments])
-        return text.strip()
+# 已移至 services.py，此处仅保留类型别名以保持兼容性
+# from services import WhisperRecognizer  # 实际使用services.py中的实现
 
 
 # ============ GLM 对话实现 ============
-class GLMChatService(IChatService):
-    """GLM 对话服务"""
-    
-    DEFAULT_TIMEOUT = 60
-    MAX_RETRIES = 3
-    RETRY_DELAY = 1  # seconds
-    
-    def __init__(self, api_key: str):  # pragma: no cover (需要 API 调用)
-        from zhipuai import ZhipuAI
-        self.client = ZhipuAI(api_key=api_key)
-    
-    def chat(self, messages, stream_callback=None, timeout: int = None, 
-             max_retries: int = None) -> str:  # pragma: no cover (需要 API 调用)
-        """对话 (支持超时设置和重试)
-        
-        Args:
-            messages: 对话消息列表
-            stream_callback: 流式响应回调
-            timeout: 超时秒数 (默认60秒)
-            max_retries: 最大重试次数 (默认3次)
-            
-        Raises:
-            ValueError: 消息列表为空
-            TimeoutError: API 请求超时
-            ConnectionError: 网络连接失败
-            RuntimeError: API 调用失败
-        """
-        # 输入验证
-        if not messages:
-            raise ValueError("消息列表不能为空")
-        
-        timeout = timeout or self.DEFAULT_TIMEOUT
-        max_retries = max_retries if max_retries is not None else self.MAX_RETRIES
-        last_error = None
-        
-        for attempt in range(max_retries):
-            try:
-                return self._do_chat(messages, stream_callback, timeout)
-            except (TimeoutError, ConnectionError) as e:
-                last_error = e
-                if attempt < max_retries - 1:
-                    logger.warning(f"API 请求失败 (尝试 {attempt + 1}/{max_retries}), {self.RETRY_DELAY}秒后重试...")
-                    time.sleep(self.RETRY_DELAY)
-                continue
-            except Exception as e:
-                raise RuntimeError(f"GLM API 调用失败: {e}") from e
-        
-        # 所有重试都失败
-        raise last_error or RuntimeError("GLM API 调用失败")
-    
-    def _do_chat(self, messages, stream_callback, timeout: int) -> str:
-        """执行实际的 API 调用"""
-        try:
-            response = self.client.chat.completions.create(
-                model="glm-4",
-                messages=messages,
-                stream=stream_callback is not None,
-                temperature=0.7,
-                timeout=timeout
-            )
-        except aiohttp.ClientError as e:
-            raise ConnectionError(f"GLM API 连接失败: {e}") from e
-        except asyncio.TimeoutError:
-            raise TimeoutError("GLM API 请求超时，请检查网络连接") from None
-        except Exception as e:
-            error_msg = str(e)
-            if "timeout" in error_msg.lower():
-                raise TimeoutError("GLM API 请求超时，请检查网络连接") from e
-            if "connection" in error_msg.lower():
-                raise ConnectionError("GLM API 连接失败，请检查网络") from e
-            raise RuntimeError(f"GLM API 调用失败: {e}") from e
-        
-        full_response = ""
-        
-        if stream_callback:
-            for chunk in response:
-                if chunk.choices[0].delta.content:
-                    content = chunk.choices[0].delta.content
-                    full_response += content
-                    stream_callback(content)
-        else:
-            full_response = response.choices[0].message.content
-        
-        return full_response
+# 已移至 services.py
+# from services import GLMChatService
 
 
 # ============ Edge TTS 实现 ============
-class EdgeTTSService(ITTSService):
-    """Edge TTS 服务"""
-    
-    MAX_RETRIES = 3
-    RETRY_DELAY = 1  # seconds
-    
-    def __init__(self, voice: str = "zh-CN-XiaoxiaoNeural"):  # pragma: no cover (需要网络调用)
-        import edge_tts
-        self.voice = voice
-        self.communicate = edge_tts.Communicate
-    
-    async def synthesize(self, text: str, output_path: str) -> str:
-        """语音合成 (支持重试机制)
-        
-        Args:
-            text: 要转换的文本
-            output_path: 输出文件路径
-            
-        Returns:
-            输出文件路径
-            
-        Raises:
-            ValueError: 文本为空
-            ConnectionError: 网络连接失败
-            RuntimeError: TTS 服务错误
-        """
-        if not text or not text.strip():
-            raise ValueError("合成文本不能为空")
-        
-        last_error = None
-        for attempt in range(self.MAX_RETRIES):
-            try:
-                return await self._do_synthesize(text, output_path)
-            except (aiohttp.ClientError, ConnectionError) as e:
-                last_error = e
-                if attempt < self.MAX_RETRIES - 1:
-                    logger.warning(f"TTS 请求失败 (尝试 {attempt + 1}/{self.MAX_RETRIES}), {self.RETRY_DELAY}秒后重试...")
-                    await asyncio.sleep(self.RETRY_DELAY)
-                continue
-            except Exception as e:
-                raise RuntimeError(f"Edge TTS 合成失败: {e}") from e
-        
-        raise last_error or RuntimeError("Edge TTS 合成失败")
-    
-    async def _do_synthesize(self, text: str, output_path: str) -> str:
-        """执行实际的 TTS 合成"""
-        communicate = self.communicate(text, self.voice)
-        await communicate.save(output_path)
-        return output_path
+# 已移至 services.py
+# from services import EdgeTTSService
 
 
 # ============ VAD 录音 ============
