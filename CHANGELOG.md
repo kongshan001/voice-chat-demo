@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] - 2026-03-17
+
+### Added
+- 新增 CLI 未知参数测试 - 增强参数验证覆盖
+
+### Changed
+- 优化 `import time` 放置到模块级别 - 避免重复导入
+- 改进代码结构 - 移除冗余的函数内导入
+
+### Fixed
+- 修复 GLMChatService 重试逻辑中重复导入 time 模块
+- 修复 record_with_vad 函数中冗余导入
+
+### Notes
+- 测试统计: 195 tests (原 194 tests)
+- 所有测试通过 ✓
+
 ## [1.6.0] - 2026-03-17
 
 ### Added

@@ -11,6 +11,7 @@ import os
 import sys
 import argparse
 import asyncio
+import time
 import requests
 import aiohttp
 from typing import Optional, Callable, List, Dict, Any
@@ -111,7 +112,6 @@ class GLMChatService(IChatService):
                 last_error = e
                 if attempt < max_retries - 1:
                     logger.warning(f"API 请求失败 (尝试 {attempt + 1}/{max_retries}), {self.RETRY_DELAY}秒后重试...")
-                    import time
                     time.sleep(self.RETRY_DELAY)
                 continue
             except Exception as e:
@@ -233,7 +233,6 @@ def record_with_vad(duration=10, sample_rate=16000, channels=1):  # pragma: no c
         raise RuntimeError(f"无法打开麦克风: {e}") from e
     
     with stream:
-        import time
         start_time = time.time()
         while time.time() - start_time < duration:
             if not is_listening:

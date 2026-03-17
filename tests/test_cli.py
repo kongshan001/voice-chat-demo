@@ -133,3 +133,12 @@ class TestEnvironmentVariables:
         with pytest.raises(SystemExit) as exc_info:
             parser.parse_args(["--help"])
         assert exc_info.value.code == 0
+    
+    def test_unknown_argument_raises(self):
+        """测试未知参数应报错"""
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--known-arg", "-k")
+        
+        with pytest.raises(SystemExit):
+            parser.parse_args(["--unknown-arg", "value"])
