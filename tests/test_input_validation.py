@@ -2,6 +2,7 @@
 输入验证测试
 """
 import pytest
+import asyncio
 from unittest.mock import Mock, AsyncMock, patch
 
 from main import GLMChatService, EdgeTTSService, VoiceChatApp
@@ -37,7 +38,6 @@ class TestEdgeTTSServiceInputValidation:
             with pytest.raises(ValueError, match="合成文本不能为空"):
                 await service.synthesize("", "output.mp3")
         
-        import asyncio
         asyncio.run(test())
     
     def test_synthesize_whitespace_only_raises_error(self):
@@ -48,7 +48,6 @@ class TestEdgeTTSServiceInputValidation:
             with pytest.raises(ValueError, match="合成文本不能为空"):
                 await service.synthesize("   ", "output.mp3")
         
-        import asyncio
         asyncio.run(test())
     
     def test_synthesize_valid_text(self):
@@ -66,7 +65,37 @@ class TestEdgeTTSServiceInputValidation:
                 mock_comm_instance.save.assert_called_once_with("output.mp3")
                 assert result == "output.mp3"
         
-        import asyncio
+        asyncio.run(test())
+    
+    def test_synthesize_network_error(self):
+        """测试网络错误应转换为 ConnectionError"""
+        service = EdgeTTSService()
+        
+        async def test():
+            with patch.object(service, 'communicate') as mock_comm:
+                mock_comm_instance = AsyncMock()
+                mock_comm_instance.save.side_effect = Exception("Connection refused")
+                mock_comm.return_value = mock_comm_instance
+                
+                with pytest.raises(RuntimeError, match="Edge TTS 合成失败"):
+                    await service.synthesize("你好", "output.mp3")
+        
+        asyncio.run(test())
+    
+    def test_synthesize_client_error(self):
+        """测试客户端错误应转换为 ConnectionError"""
+        service = EdgeTTSService()
+        
+        async def test():
+            import aiohttp
+            with patch.object(service, 'communicate') as mock_comm:
+                mock_comm_instance = AsyncMock()
+                mock_comm_instance.save.side_effect = aiohttp.ClientError("Network error")
+                mock_comm.return_value = mock_comm_instance
+                
+                with pytest.raises(ConnectionError, match="Edge TTS 网络连接失败"):
+                    await service.synthesize("你好", "output.mp3")
+        
         asyncio.run(test())
 
 

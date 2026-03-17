@@ -1,7 +1,7 @@
 # 生产依赖 (固定版本以保证稳定性)
-faster-whisper==1.0.0
-zhipuai==2.1.0
-edge-tts==6.1.12
+faster-whisper==1.2.1
+zhipuai==2.1.5.20250825
+edge-tts==7.2.7
 sounddevice==0.4.7
 numpy==1.26.4
 webrtcvad==2.0.10

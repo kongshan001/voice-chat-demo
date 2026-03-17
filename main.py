@@ -124,7 +124,7 @@ class EdgeTTSService(ITTSService):
         self.voice = voice
         self.communicate = edge_tts.Communicate
     
-    async def synthesize(self, text: str, output_path: str) -> str:  # pragma: no cover (需要网络调用)
+    async def synthesize(self, text: str, output_path: str) -> str:
         """语音合成
         
         Args:
@@ -133,12 +133,24 @@ class EdgeTTSService(ITTSService):
             
         Returns:
             输出文件路径
+            
+        Raises:
+            ValueError: 文本为空
+            ConnectionError: 网络连接失败
+            RuntimeError: TTS 服务错误
         """
         if not text or not text.strip():
             raise ValueError("合成文本不能为空")
         
-        communicate = self.communicate(text, self.voice)
-        await communicate.save(output_path)
+        import aiohttp
+        try:
+            communicate = self.communicate(text, self.voice)
+            await communicate.save(output_path)
+        except aiohttp.ClientError as e:
+            raise ConnectionError(f"Edge TTS 网络连接失败: {e}") from e
+        except Exception as e:
+            raise RuntimeError(f"Edge TTS 合成失败: {e}") from e
+        
         return output_path
 
 
