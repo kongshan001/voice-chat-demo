@@ -250,6 +250,21 @@ class TextProcessor:
         if len(text) <= max_length:
             return text
         return text[:max_length] + "..."
+    
+    @staticmethod
+    def is_chinese(text: str) -> bool:
+        """
+        检查文本是否包含中文字符
+        
+        Args:
+            text: 待检查的文本
+            
+        Returns:
+            True 表示包含中文
+        """
+        if not text:
+            return False
+        return bool(re.search(r'[\u4e00-\u9fff]', text))
 
 
 class Config:

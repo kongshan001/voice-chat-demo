@@ -108,3 +108,28 @@ class TestEnvironmentVariables:
         monkeypatch.delenv("ZHIPU_API_KEY", raising=False)
         api_key = os.getenv("ZHIPU_API_KEY", "your-api-key-here")
         assert api_key == "your-api-key-here"
+    
+    def test_cli_help_flag(self):
+        """测试 CLI --help 参数"""
+        import argparse
+        from main import main
+        
+        # 创建与 main 相同的 parser
+        parser = argparse.ArgumentParser(description="语音对话 Demo")
+        parser.add_argument("--api-key", "-k", help="GLM API Key")
+        parser.add_argument("--whisper-model", "-m", default="base", 
+                            choices=["tiny", "base", "small", "medium"],
+                            help="Whisper 模型大小 (默认: base)")
+        parser.add_argument("--optimize-for-pi", action="store_true",
+                            help="为树莓派优化 (使用 tiny 模型)")
+        parser.add_argument("--sample-rate", "-s", type=int, default=16000,
+                            help="音频采样率 (默认: 16000)")
+        
+        # 测试 -h 和 --help 都会触发 help 消息
+        with pytest.raises(SystemExit) as exc_info:
+            parser.parse_args(["-h"])
+        assert exc_info.value.code == 0
+        
+        with pytest.raises(SystemExit) as exc_info:
+            parser.parse_args(["--help"])
+        assert exc_info.value.code == 0

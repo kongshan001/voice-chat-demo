@@ -4,7 +4,7 @@ import os
 import tempfile
 from unittest.mock import patch, MagicMock
 
-from main import play_audio, simple_record, WhisperRecognizer, GLMChatService, EdgeTTSService
+from main import play_audio, simple_record, record_with_vad, WhisperRecognizer, GLMChatService, EdgeTTSService
 
 
 class TestPlayAudioFunction:
@@ -21,6 +21,27 @@ class TestPlayAudioFunction:
         with patch('os.path.exists', return_value=False):
             with pytest.raises(FileNotFoundError):
                 play_audio("dummy.mp3")
+    
+    def test_play_audio_exists_method(self):
+        """测试 play_audio 函数存在且可调用"""
+        assert callable(play_audio)
+
+
+class TestRecordWithVad:
+    """测试 record_with_vad 函数"""
+    
+    def test_record_with_vad_exists(self):
+        """测试 record_with_vad 函数存在"""
+        assert callable(record_with_vad)
+    
+    def test_record_with_vad_signature(self):
+        """测试 record_with_vad 函数签名"""
+        import inspect
+        sig = inspect.signature(record_with_vad)
+        params = list(sig.parameters.keys())
+        assert 'duration' in params
+        assert 'sample_rate' in params
+        assert 'channels' in params
 
 
 class TestSimpleRecord:

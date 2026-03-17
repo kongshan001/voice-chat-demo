@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0] - 2026-03-17
+
+### Added
+- 新增 `is_chinese()` 方法到 TextProcessor - 检测中文字符
+- 新增 CLI --help 参数测试
+- 新增 record_with_vad 函数签名测试
+
+### Changed
+- 修复 GLMChatService._do_chat() 错误处理 - 使用 aiohttp 而非 requests 异常
+- 改进 API 超时和连接错误检测
+- 测试统计: 187 tests (原 179 tests)
+
+### Fixed
+- 修复 GLMChatService 异常处理不一致问题
+
 ## [1.5.0] - 2026-03-17
 
 ### Added

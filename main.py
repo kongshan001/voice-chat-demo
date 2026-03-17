@@ -122,6 +122,7 @@ class GLMChatService(IChatService):
     
     def _do_chat(self, messages, stream_callback, timeout: int) -> str:
         """执行实际的 API 调用"""
+        import aiohttp
         try:
             response = self.client.chat.completions.create(
                 model="glm-4",
@@ -130,11 +131,16 @@ class GLMChatService(IChatService):
                 temperature=0.7,
                 timeout=timeout
             )
-        except requests.exceptions.Timeout:
+        except aiohttp.ClientError as e:
+            raise ConnectionError(f"GLM API 连接失败: {e}") from e
+        except asyncio.TimeoutError:
             raise TimeoutError("GLM API 请求超时，请检查网络连接") from None
-        except requests.exceptions.ConnectionError:
-            raise ConnectionError("GLM API 连接失败，请检查网络") from None
         except Exception as e:
+            error_msg = str(e)
+            if "timeout" in error_msg.lower():
+                raise TimeoutError("GLM API 请求超时，请检查网络连接") from e
+            if "connection" in error_msg.lower():
+                raise ConnectionError("GLM API 连接失败，请检查网络") from e
             raise RuntimeError(f"GLM API 调用失败: {e}") from e
         
         full_response = ""
