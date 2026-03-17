@@ -20,13 +20,6 @@ from services import ISpeechRecognizer, IChatService, ITTSService
 Messages = List[Dict[str, str]]
 StreamCallback = Optional[Callable[[str], None]]
 
-# 默认配置
-_config = Config(
-    api_key=os.getenv("ZHIPU_API_KEY", "your-api-key-here"),
-    whisper_model="base",
-    whisper_device="cpu"
-)
-
 # 服务提供者 (可替换为 mock)
 _speech_recognizer: Optional[ISpeechRecognizer] = None
 _chat_service: Optional[IChatService] = None

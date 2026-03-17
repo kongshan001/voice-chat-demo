@@ -55,6 +55,12 @@ class ConversationManager:
     EXIT_KEYWORDS_ZH = ["再见", "退出", "拜拜", "结束"]
     EXIT_KEYWORDS_EN = ["stop", "quit", "exit", "bye"]
     
+    # 预编译英文退出关键词正则 (提高性能)
+    _EXIT_EN_PATTERNS = [
+        re.compile(rf'(^|\s){keyword}($|\s)', re.IGNORECASE)
+        for keyword in EXIT_KEYWORDS_EN
+    ]
+    
     def __init__(
         self, 
         system_prompt: str = "你是一个友好的AI助手，请用中文简洁回复。",
@@ -105,11 +111,10 @@ class ConversationManager:
                 logger.info(f"检测到退出关键词: {keyword}")
                 return True
         
-        # 英文关键词（单词边界）
-        text_lower = text.lower()
-        for keyword in self.EXIT_KEYWORDS_EN:
-            if re.search(rf'(^|\s){keyword}($|\s)', text_lower):
-                logger.info(f"检测到退出关键词: {keyword}")
+        # 英文关键词（使用预编译正则）
+        for pattern in self._EXIT_EN_PATTERNS:
+            if pattern.search(text):
+                logger.info(f"检测到退出关键词")
                 return True
         
         return False

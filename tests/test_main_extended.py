@@ -35,11 +35,12 @@ class TestMainEntryPoint:
         assert hasattr(main, 'main')
         assert callable(main.main)
     
-    def test_config_module_exists(self):
-        """测试配置模块存在"""
-        from main import _config
-        assert _config is not None
-        assert hasattr(_config, 'api_key')
+    def test_config_class_exists(self):
+        """测试 Config 类存在"""
+        from main import Config
+        config = Config()
+        assert config is not None
+        assert hasattr(config, 'api_key')
 
 
 class TestConfigureServices:
@@ -72,7 +73,7 @@ class TestGlobalVariables:
         assert hasattr(main, '_speech_recognizer')
         assert hasattr(main, '_chat_service')
         assert hasattr(main, '_tts_service')
-        assert hasattr(main, '_config')
+        # _config 已移除 (未使用的全局变量)
 
 
 class TestIntegrationScenarios:
