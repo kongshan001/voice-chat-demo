@@ -81,6 +81,10 @@ class GLMChatService(IChatService):
             stream_callback: 流式响应回调
             timeout: 超时秒数 (默认60秒)
         """
+        # 输入验证
+        if not messages:
+            raise ValueError("消息列表不能为空")
+        
         import requests
         try:
             response = self.client.chat.completions.create(
@@ -121,6 +125,18 @@ class EdgeTTSService(ITTSService):
         self.communicate = edge_tts.Communicate
     
     async def synthesize(self, text: str, output_path: str) -> str:  # pragma: no cover (需要网络调用)
+        """语音合成
+        
+        Args:
+            text: 要转换的文本
+            output_path: 输出文件路径
+            
+        Returns:
+            输出文件路径
+        """
+        if not text or not text.strip():
+            raise ValueError("合成文本不能为空")
+        
         communicate = self.communicate(text, self.voice)
         await communicate.save(output_path)
         return output_path
@@ -203,45 +219,10 @@ class VoiceChatApp:
         self.audio_processor = AudioProcessor(config.sample_rate, config.channels)
         self.text_processor = TextProcessor()
         
-        # 初始化服务属性
-        self._recognizer = None
-        self._chat_service = None
-        self._tts_service = None
-        
         # 注入服务
-        if recognizer:
-            self._recognizer = recognizer
-        if chat_service:
-            self._chat_service = chat_service
-        if tts_service:
-            self._tts_service = tts_service
-    
-    @property
-    def recognizer(self) -> ISpeechRecognizer:
-        """获取语音识别服务"""
-        return getattr(self, '_recognizer', None)
-    
-    @recognizer.setter
-    def recognizer(self, value: ISpeechRecognizer):
-        self._recognizer = value
-    
-    @property
-    def chat_service(self) -> IChatService:
-        """获取对话服务"""
-        return getattr(self, '_chat_service', None)
-    
-    @chat_service.setter
-    def chat_service(self, value: IChatService):
-        self._chat_service = value
-    
-    @property
-    def tts_service(self) -> ITTSService:
-        """获取语音合成服务"""
-        return getattr(self, '_tts_service', None)
-    
-    @tts_service.setter
-    def tts_service(self, value: ITTSService):
-        self._tts_service = value
+        self.recognizer = recognizer
+        self.chat_service = chat_service
+        self.tts_service = tts_service
     
     def process_audio(self, audio) -> Optional[str]:
         """处理音频 -> 文字"""

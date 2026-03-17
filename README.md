@@ -168,6 +168,9 @@ sudo systemctl start voice-chat-demo
 
 ## 常见问题
 
+### Q: 导入模块时出错
+A: 确保已激活虚拟环境 `source venv/bin/activate`，并已安装所有依赖 `pip install -r requirements.txt`
+
 ### Q: 录音没有声音
 A: 检查麦克风权限 `arecord -l`，确认麦克风已识别
 
@@ -185,6 +188,9 @@ A: 确认 API Key 正确且已开通权限，访问 https://open.bigmodel.cn/
 
 ### Q: 树莓派音频播放无声
 A: 检查音频输出设备 `aplay -l`，确认默认输出设备正确
+
+### Q: API 请求返回空响应
+A: 检查 API Key 是否有余额，访问 https://open.bigmodel.cn/ 查看用量
 
 ## API 使用示例
 
