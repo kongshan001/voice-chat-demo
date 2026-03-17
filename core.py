@@ -191,6 +191,12 @@ class TextProcessor:
 class Config:
     """配置类"""
     
+    __slots__ = (
+        'api_key', 'whisper_model', 'whisper_device', 'sample_rate',
+        'channels', 'vad_aggressiveness', 'tts_voice', 'temperature',
+        'max_history', 'log_level'
+    )
+    
     # 支持的 Whisper 模型
     WHISPER_MODELS = ["tiny", "base", "small", "medium", "large"]
     

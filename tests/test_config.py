@@ -111,3 +111,16 @@ class TestConfig:
         config = Config(api_key="test", temperature=5.0)
         errors = config.validate()
         assert any("温度" in e for e in errors)
+    
+    def test_config_slots(self):
+        """测试 Config 类使用 __slots__ 优化内存"""
+        config = Config(api_key="test-key")
+        # 验证 slots 存在
+        assert hasattr(Config, '__slots__')
+        # 验证所有预期属性都在 slots 中
+        expected_slots = (
+            'api_key', 'whisper_model', 'whisper_device', 'sample_rate',
+            'channels', 'vad_aggressiveness', 'tts_voice', 'temperature',
+            'max_history', 'log_level'
+        )
+        assert all(slot in Config.__slots__ for slot in expected_slots)

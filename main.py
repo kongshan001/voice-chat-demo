@@ -10,11 +10,15 @@ import os
 import sys
 import argparse
 import asyncio
-from typing import Optional
+from typing import Optional, Callable, List, Dict, Any
 import numpy as np
 
 from core import ConversationManager, AudioProcessor, TextProcessor, Config, ServiceNotConfiguredError
 from services import ISpeechRecognizer, IChatService, ITTSService
+
+# 类型别名
+Messages = List[Dict[str, str]]
+StreamCallback = Optional[Callable[[str], None]]
 
 # 默认配置
 _config = Config(
