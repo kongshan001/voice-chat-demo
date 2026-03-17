@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.1] - 2026-03-18
+
+### Fixed
+- 修复 main.py 中 TranscriptionError 未正确导入的问题
+
+### Notes
+- 测试统计: 195 tests - 所有测试通过 ✓
+
 ## [1.7.0] - 2026-03-17
 
 ### Added

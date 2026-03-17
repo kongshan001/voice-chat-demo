@@ -17,7 +17,7 @@ import aiohttp
 from typing import Optional, Callable, List, Dict, Any
 import numpy as np
 
-from core import ConversationManager, AudioProcessor, TextProcessor, Config, ServiceNotConfiguredError
+from core import ConversationManager, AudioProcessor, TextProcessor, Config, ServiceNotConfiguredError, TranscriptionError
 from services import ISpeechRecognizer, IChatService, ITTSService, IAudioRecorder
 
 # 配置日志
