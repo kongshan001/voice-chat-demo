@@ -14,7 +14,7 @@ from typing import Optional, Callable, List, Dict, Any
 import numpy as np
 
 from core import ConversationManager, AudioProcessor, TextProcessor, Config, ServiceNotConfiguredError
-from services import ISpeechRecognizer, IChatService, ITTSService
+from services import ISpeechRecognizer, IChatService, ITTSService, IAudioRecorder
 
 # 类型别名
 Messages = List[Dict[str, str]]

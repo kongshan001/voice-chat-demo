@@ -7,7 +7,7 @@
 - 解耦业务逻辑与具体服务
 """
 from abc import ABC, abstractmethod
-from typing import Optional, Callable, List, Dict, Any, Awaitable
+from typing import Optional, Callable, List, Dict, Any
 import numpy as np
 
 
@@ -48,13 +48,15 @@ class IChatService(ABC):
     def chat(
         self, 
         messages: List[Dict[str, str]], 
-        stream_callback: Optional[Callable[[str], None]] = None
+        stream_callback: Optional[Callable[[str], None]] = None,
+        timeout: int = 60
     ) -> str:
         """对话
         
         Args:
             messages: 对话消息列表，格式为 [{"role": "user/assistant/system", "content": "..."}]
             stream_callback: 可选的流式响应回调函数
+            timeout: 超时秒数
             
         Returns:
             完整的回复文本
