@@ -2,7 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.2.1] - 2026-03-17
+## [1.3.0] - 2026-03-17
+
+### Added
+- 新增 `.env.example` 配置文件，方便新用户快速配置
+- 新增 CLI 参数解析测试覆盖 (`tests/test_cli.py`)
+- 新增 KeyboardInterrupt 优雅退出处理
+- 新增 python-dotenv 依赖支持
+
+### Changed
+- 改进 README 文档中的环境变量配置说明
+- 优化 `main()` 函数的错误处理结构
+
+### Fixed
+- 修复主循环无法优雅退出的问题 (Ctrl+C 支持)
 
 ### Changed
 - 优化 `AudioProcessor.__init__()` 添加完整文档字符串

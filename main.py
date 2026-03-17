@@ -301,9 +301,17 @@ def main(argv=None):  # pragma: no cover
     print("🎙️ 语音对话 Demo (增强版)")
     print(f"   模型: whisper-{whisper_model}")
     print("=" * 50)
+
+    # 从环境变量或 .env 文件加载配置
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass  # dotenv is optional
     
     if api_key == "your-api-key-here":
         print("⚠️ 请设置环境变量 ZHIPU_API_KEY 或使用 --api-key 参数")
+        print("   参考 .env.example 文件")
         return
     
     # 初始化配置
@@ -328,66 +336,72 @@ def main(argv=None):  # pragma: no cover
     print("📥 加载 Whisper 模型...")
     recognizer.load_model()
     print("✅ 模型加载完成\n")
-    
-    while True:
-        try:
-            input("▶️ 按 Enter 开始说话...")
-        except EOFError:
-            break
-        
-        # 1. 录音
-        audio_data = record_with_vad(duration=10)
-        
-        if audio_data is None or len(audio_data) < 1600:
-            print("❌ 未检测到语音\n")
-            continue
-        
-        # 2. 语音识别
-        print("📝 识别中...")
-        user_text = app.process_audio(audio_data)
-        
-        if not user_text:
-            print("❌ 识别失败\n")
-            continue
+
+    try:
+        while True:
+            try:
+                input("▶️ 按 Enter 开始说话...")
+            except EOFError:
+                break
             
-        print(f"👤 你说: {user_text}")
-        
-        # 检查退出
-        if app.should_exit(user_text):
-            print("👋 再见!")
-            break
-        
-        # 3. 流式对话
-        print("🤖 AI: ", end="", flush=True)
-        
-        accumulated_reply = ""
-        
-        def stream_callback(text):
-            nonlocal accumulated_reply
-            accumulated_reply += text
-            print(text, end="", flush=True)
-        
-        try:
-            app.chat(user_text, stream_callback)
-            print("\n")
-        except Exception as e:
-            print(f"\n❌ API 错误: {e}")
-            continue
-        
-        # 4. 语音合成
-        try:
-            input("🔊 按 Enter 播放语音回复...")
-        except EOFError:
-            break
-        print("🔊 播放中...")
-        
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        audio_file = loop.run_until_complete(app.synthesize_speech(accumulated_reply, "/tmp/reply.mp3"))
-        loop.close()
-        
-        play_audio(audio_file)
-        print("-" * 50)
+            # 1. 录音
+            audio_data = record_with_vad(duration=10)
+            
+            if audio_data is None or len(audio_data) < 1600:
+                print("❌ 未检测到语音\n")
+                continue
+            
+            # 2. 语音识别
+            print("📝 识别中...")
+            user_text = app.process_audio(audio_data)
+            
+            if not user_text:
+                print("❌ 识别失败\n")
+                continue
+                
+            print(f"👤 你说: {user_text}")
+            
+            # 检查退出
+            if app.should_exit(user_text):
+                print("👋 再见!")
+                break
+            
+            # 3. 流式对话
+            print("🤖 AI: ", end="", flush=True)
+            
+            accumulated_reply = ""
+            
+            def stream_callback(text):
+                nonlocal accumulated_reply
+                accumulated_reply += text
+                print(text, end="", flush=True)
+            
+            try:
+                app.chat(user_text, stream_callback)
+                print("\n")
+            except Exception as e:
+                print(f"\n❌ API 错误: {e}")
+                continue
+            
+            # 4. 语音合成
+            try:
+                input("🔊 按 Enter 播放语音回复...")
+            except EOFError:
+                break
+            print("🔊 播放中...")
+            
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            audio_file = loop.run_until_complete(app.synthesize_speech(accumulated_reply, "/tmp/reply.mp3"))
+            loop.close()
+            
+            play_audio(audio_file)
+            print("-" * 50)
+    
+    except KeyboardInterrupt:
+        print("\n👋 用户中断，正在退出...")
+    finally:
+        print("✅ 程序已退出")
 
 
 if __name__ == "__main__":  # pragma: no cover

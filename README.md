@@ -60,10 +60,14 @@ pip install -r requirements-dev.txt
 
 #### 配置环境变量
 ```bash
-# 临时生效
+# 方式1: 复制示例配置
+cp .env.example .env
+# 然后编辑 .env 填入您的 API Key
+
+# 方式2: 使用环境变量 (临时生效)
 export ZHIPU_API_KEY="your-api-key-here"
 
-# 永久生效 (添加到 ~/.bashrc)
+# 方式3: 永久生效 (添加到 ~/.bashrc)
 echo 'export ZHIPU_API_KEY="your-api-key-here"' >> ~/.bashrc
 source ~/.bashrc
 ```
