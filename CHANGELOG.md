@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2026-03-17
+
+### Added
+- 新增 `tests/test_main_errors.py` - 错误处理测试套件
+- 新增 play_audio 文件不存在检查
+- 新增 simple_record 和 record_with_vad 运行时错误处理
+
+### Changed
+- 优化模块导入结构 - `requests` 和 `aiohttp` 改为模块级导入
+- 改进 GLMChatService.chat() 文档字符串
+- 改进 EdgeTTSService.synthesize() 文档字符串
+- 改进 play_audio() 添加完整错误处理和文档
+- 改进 simple_record() 添加错误处理和文档
+- 改进 record_with_vad() 添加错误处理和文档
+- 测试统计: 170 tests (原 166 tests)
+
 ## [1.3.0] - 2026-03-17
 
 ### Added

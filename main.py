@@ -10,6 +10,8 @@ import os
 import sys
 import argparse
 import asyncio
+import requests
+import aiohttp
 from typing import Optional, Callable, List, Dict, Any
 import numpy as np
 
@@ -77,12 +79,17 @@ class GLMChatService(IChatService):
             messages: 对话消息列表
             stream_callback: 流式响应回调
             timeout: 超时秒数 (默认60秒)
+            
+        Raises:
+            ValueError: 消息列表为空
+            TimeoutError: API 请求超时
+            ConnectionError: 网络连接失败
+            RuntimeError: API 调用失败
         """
         # 输入验证
         if not messages:
             raise ValueError("消息列表不能为空")
         
-        import requests
         try:
             response = self.client.chat.completions.create(
                 model="glm-4",
@@ -139,7 +146,6 @@ class EdgeTTSService(ITTSService):
         if not text or not text.strip():
             raise ValueError("合成文本不能为空")
         
-        import aiohttp
         try:
             communicate = self.communicate(text, self.voice)
             await communicate.save(output_path)
@@ -153,7 +159,19 @@ class EdgeTTSService(ITTSService):
 
 # ============ VAD 录音 ============
 def record_with_vad(duration=10, sample_rate=16000, channels=1):  # pragma: no cover
-    """带 VAD 的录音 (需要麦克风硬件，无法单元测试)"""
+    """带 VAD 的录音 (需要麦克风硬件，无法单元测试)
+    
+    Args:
+        duration: 录音时长（秒）
+        sample_rate: 采样率
+        channels: 通道数
+        
+    Returns:
+        音频数据，失败返回 None
+        
+    Raises:
+        RuntimeError: 录音设备错误
+    """
     import webrtcvad
     import sounddevice as sd
     
@@ -164,15 +182,18 @@ def record_with_vad(duration=10, sample_rate=16000, channels=1):  # pragma: no c
     
     def callback(indata, frames, time, status):
         if status:
-            pass
+            logger.warning(f"录音状态: {status}")
         audio_buffer.append(indata.tobytes())
     
-    stream = sd.InputStream(
-        callback=callback,
-        channels=channels,
-        samplerate=sample_rate,
-        blocksize=320
-    )
+    try:
+        stream = sd.InputStream(
+            callback=callback,
+            channels=channels,
+            samplerate=sample_rate,
+            blocksize=320
+        )
+    except Exception as e:
+        raise RuntimeError(f"无法打开麦克风: {e}") from e
     
     with stream:
         import time
@@ -192,24 +213,60 @@ def record_with_vad(duration=10, sample_rate=16000, channels=1):  # pragma: no c
 
 
 def simple_record(duration=5, sample_rate=16000, channels=1):  # pragma: no cover
-    """简单录音 (需要麦克风硬件，无法单元测试)"""
+    """简单录音 (需要麦克风硬件，无法单元测试)
+    
+    Args:
+        duration: 录音时长（秒）
+        sample_rate: 采样率
+        channels: 通道数
+        
+    Returns:
+        音频数据
+        
+    Raises:
+        RuntimeError: 录音设备错误
+    """
     import sounddevice as sd
     import numpy as np
     
-    print(f"🎤 录音中... ({duration}秒)")
-    audio = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=channels, dtype=np.float32)
-    sd.wait()
-    return (audio * 32767).astype(np.int16)
+    try:
+        print(f"🎤 录音中... ({duration}秒)")
+        audio = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=channels, dtype=np.float32)
+        sd.wait()
+        return (audio * 32767).astype(np.int16)
+    except Exception as e:
+        raise RuntimeError(f"录音失败: {e}") from e
 
 
 def play_audio(file_path):  # pragma: no cover
-    """播放音频 (需要扬声器硬件，无法单元测试)"""
+    """播放音频 (需要扬声器硬件，无法单元测试)
+    
+    Args:
+        file_path: 音频文件路径
+        
+    Raises:
+        FileNotFoundError: 文件不存在
+        RuntimeError: 播放失败
+    """
     import os
-    if os.name == "nt":
-        import winsound
-        winsound.PlaySound(file_path, winsound.SND_FILENAME)
-    else:
-        os.system(f"afplay {file_path} 2>/dev/null || aplay {file_path} 2>/dev/null")
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"音频文件不存在: {file_path}")
+    
+    try:
+        if os.name == "nt":
+            import winsound
+            winsound.PlaySound(file_path, winsound.SND_FILENAME)
+        else:
+            # 尝试多个播放器
+            result = os.system(f"afplay {file_path} 2>/dev/null")
+            if result != 0:
+                result = os.system(f"aplay {file_path} 2>/dev/null")
+            if result != 0:
+                raise RuntimeError("音频播放失败，请检查音频设备")
+    except Exception as e:
+        if isinstance(e, (FileNotFoundError, RuntimeError)):
+            raise
+        raise RuntimeError(f"音频播放失败: {e}") from e
 
 
 # ============ 业务逻辑 (可测试) ============
