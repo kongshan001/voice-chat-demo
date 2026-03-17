@@ -2,7 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.8.0] - 2026-03-18
+## [1.9.0] - 2026-03-18
+
+### Changed
+- 优化 services.py - 整合接口和实现，添加完整的 __all__ 导出
+- 改进服务层文档和类型注解
+
+### Added
+- 新增 `tests/test_new_features.py` - 13个新测试用例
+- 新增 GLM 服务边缘测试
+- 新增 Edge TTS 服务边缘测试
+- 新增配置边缘测试
+
+### Notes
+- 测试统计: 218 tests (205 + 13) - 所有测试通过 ✓
 
 ### Changed
 - 更新依赖包版本: faster-whisper>=1.2.0, zhipuai>=2.1.5, edge-tts>=7.0.0, aiohttp>=3.11.0
