@@ -26,12 +26,15 @@ wheels/
 htmlcov/
 .tox/
 .nox/
+coverage.xml
+*.cover
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # Environment
 .env
@@ -43,3 +46,5 @@ ENV/
 # Project specific
 *.mp3
 reply.mp3
+/tmp/
+*.log
