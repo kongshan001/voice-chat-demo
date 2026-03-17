@@ -48,3 +48,5 @@ ENV/
 reply.mp3
 /tmp/
 *.log
+__pycache__/
+*.pyc

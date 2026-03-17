@@ -160,13 +160,16 @@ class GLMChatService(IChatService):
 class EdgeTTSService(ITTSService):
     """Edge TTS 服务"""
     
+    MAX_RETRIES = 3
+    RETRY_DELAY = 1  # seconds
+    
     def __init__(self, voice: str = "zh-CN-XiaoxiaoNeural"):  # pragma: no cover (需要网络调用)
         import edge_tts
         self.voice = voice
         self.communicate = edge_tts.Communicate
     
     async def synthesize(self, text: str, output_path: str) -> str:
-        """语音合成
+        """语音合成 (支持重试机制)
         
         Args:
             text: 要转换的文本
@@ -183,14 +186,25 @@ class EdgeTTSService(ITTSService):
         if not text or not text.strip():
             raise ValueError("合成文本不能为空")
         
-        try:
-            communicate = self.communicate(text, self.voice)
-            await communicate.save(output_path)
-        except aiohttp.ClientError as e:
-            raise ConnectionError(f"Edge TTS 网络连接失败: {e}") from e
-        except Exception as e:
-            raise RuntimeError(f"Edge TTS 合成失败: {e}") from e
+        last_error = None
+        for attempt in range(self.MAX_RETRIES):
+            try:
+                return await self._do_synthesize(text, output_path)
+            except (aiohttp.ClientError, ConnectionError) as e:
+                last_error = e
+                if attempt < self.MAX_RETRIES - 1:
+                    logger.warning(f"TTS 请求失败 (尝试 {attempt + 1}/{self.MAX_RETRIES}), {self.RETRY_DELAY}秒后重试...")
+                    await asyncio.sleep(self.RETRY_DELAY)
+                continue
+            except Exception as e:
+                raise RuntimeError(f"Edge TTS 合成失败: {e}") from e
         
+        raise last_error or RuntimeError("Edge TTS 合成失败")
+    
+    async def _do_synthesize(self, text: str, output_path: str) -> str:
+        """执行实际的 TTS 合成"""
+        communicate = self.communicate(text, self.voice)
+        await communicate.save(output_path)
         return output_path
 
 

@@ -1,5 +1,9 @@
 # 🎙️ Voice Chat Demo
 
+[![Tests](https://github.com/kongshan001/voice-chat-demo/actions/workflows/test.yml/badge.svg)](https://github.com/kongshan001/voice-chat-demo/actions)
+[![Python Version](https://img.shields.io/badge/python-3.12+-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 语音识别 + GLM 模型对话 Demo
 
 ## 功能

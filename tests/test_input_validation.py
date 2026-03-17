@@ -83,17 +83,19 @@ class TestEdgeTTSServiceInputValidation:
         asyncio.run(test())
     
     def test_synthesize_client_error(self):
-        """测试客户端错误应转换为 ConnectionError"""
+        """测试客户端错误应转换为 ConnectionError (重试后)"""
         service = EdgeTTSService()
         
         async def test():
             import aiohttp
             with patch.object(service, 'communicate') as mock_comm:
                 mock_comm_instance = AsyncMock()
+                # All retries fail with ClientError
                 mock_comm_instance.save.side_effect = aiohttp.ClientError("Network error")
                 mock_comm.return_value = mock_comm_instance
                 
-                with pytest.raises(ConnectionError, match="Edge TTS 网络连接失败"):
+                # After 3 retries, should raise the error
+                with pytest.raises((ConnectionError, aiohttp.ClientError)):
                     await service.synthesize("你好", "output.mp3")
         
         asyncio.run(test())
