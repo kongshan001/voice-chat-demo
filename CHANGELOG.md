@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.0] - 2026-03-18
+
+### Changed
+- 更新依赖包版本: faster-whisper>=1.2.0, zhipuai>=2.1.5, edge-tts>=7.0.0, aiohttp>=3.11.0
+
+### Notes
+- 测试统计: 205 tests - 所有测试通过 ✓
+
 ## [1.7.1] - 2026-03-18
 
 ### Fixed
