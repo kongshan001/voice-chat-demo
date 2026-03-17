@@ -177,6 +177,15 @@ A: 尝试使用更小的模型 `tiny`，或降低采样率
 ### Q: 内存不足
 A: 使用 `--optimize-for-pi` 参数，或改用 tiny 模型
 
+### Q: API 请求超时
+A: 检查网络连接，或增加超时时间 `chat(messages, timeout=120)`
+
+### Q: GLM API 连接失败
+A: 确认 API Key 正确且已开通权限，访问 https://open.bigmodel.cn/
+
+### Q: 树莓派音频播放无声
+A: 检查音频输出设备 `aplay -l`，确认默认输出设备正确
+
 ## API 使用示例
 
 ```python

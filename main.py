@@ -73,14 +73,27 @@ class GLMChatService(IChatService):
         from zhipuai import ZhipuAI
         self.client = ZhipuAI(api_key=api_key)
     
-    def chat(self, messages, stream_callback=None):  # pragma: no cover (需要 API 调用)
+    def chat(self, messages, stream_callback=None, timeout: int = 60):  # pragma: no cover (需要 API 调用)
+        """对话 (支持超时设置)
+        
+        Args:
+            messages: 对话消息列表
+            stream_callback: 流式响应回调
+            timeout: 超时秒数 (默认60秒)
+        """
+        import requests
         try:
             response = self.client.chat.completions.create(
                 model="glm-4",
                 messages=messages,
                 stream=stream_callback is not None,
-                temperature=0.7
+                temperature=0.7,
+                timeout=timeout
             )
+        except requests.exceptions.Timeout:
+            raise TimeoutError("GLM API 请求超时，请检查网络连接") from None
+        except requests.exceptions.ConnectionError:
+            raise ConnectionError("GLM API 连接失败，请检查网络") from None
         except Exception as e:
             raise RuntimeError(f"GLM API 调用失败: {e}") from e
         
@@ -190,13 +203,18 @@ class VoiceChatApp:
         self.audio_processor = AudioProcessor(config.sample_rate, config.channels)
         self.text_processor = TextProcessor()
         
+        # 初始化服务属性
+        self._recognizer = None
+        self._chat_service = None
+        self._tts_service = None
+        
         # 注入服务
         if recognizer:
-            self.recognizer = recognizer
+            self._recognizer = recognizer
         if chat_service:
-            self.chat_service = chat_service
+            self._chat_service = chat_service
         if tts_service:
-            self.tts_service = tts_service
+            self._tts_service = tts_service
     
     @property
     def recognizer(self) -> ISpeechRecognizer:

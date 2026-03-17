@@ -48,6 +48,38 @@ class TestTTSAsyncErrorHandling:
         asyncio.run(test())
 
 
+class TestGLMServiceTimeout:
+    """测试 GLM 服务超时处理"""
+    
+    def test_chat_timeout_error(self):
+        """测试 API 超时错误"""
+        import requests
+        from main import GLMChatService
+        
+        service = GLMChatService("test-key")
+        
+        # 模拟超时
+        with patch.object(service.client.chat.completions, 'create') as mock_create:
+            mock_create.side_effect = requests.exceptions.Timeout("Connection timed out")
+            
+            with pytest.raises(TimeoutError):
+                service.chat([{"role": "user", "content": "hello"}])
+    
+    def test_chat_connection_error(self):
+        """测试连接错误"""
+        import requests
+        from main import GLMChatService
+        
+        service = GLMChatService("test-key")
+        
+        # 模拟连接错误
+        with patch.object(service.client.chat.completions, 'create') as mock_create:
+            mock_create.side_effect = requests.exceptions.ConnectionError("Connection refused")
+            
+            with pytest.raises(ConnectionError):
+                service.chat([{"role": "user", "content": "hello"}])
+
+
 class TestConversationEdgeCases:
     """测试对话管理器边界情况"""
     
