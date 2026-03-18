@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.17.0] - 2026-03-18
+
+### Added
+- 新增 `tests/test_edge_cases_enhanced.py` - 15个边缘用例测试
+- VoiceChatApp 现在正确传递 max_history 配置给 ConversationManager
+
+### Fixed
+- 修复 requirements.txt 格式问题（注释与依赖混排）
+- 修复 VoiceChatApp 未使用 Config.max_history 的 bug
+
+### Notes
+- 测试统计: 306 tests (291 + 15) - 所有测试通过 ✓
+
 ## [1.16.0] - 2026-03-18
 
 ### Added

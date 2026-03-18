@@ -172,7 +172,7 @@ class VoiceChatApp:
         tts_service: ITTSService = None
     ):
         self.config = config
-        self.conversation = ConversationManager()
+        self.conversation = ConversationManager(max_history=config.max_history)
         self.audio_processor = AudioProcessor(config.sample_rate, config.channels)
         self.text_processor = TextProcessor()
         
