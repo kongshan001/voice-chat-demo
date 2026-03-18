@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.16.0] - 2026-03-18
+
+### Added
+- WhisperRecognizer 输入验证：空模型名、无效设备、空音频、非 numpy array
+- GLMChatService API Key 验证：空 Key、空白 Key、无效类型
+- Config 验证增强：负数 max_history、无效 whisper_device
+- 新增 `tests/test_optimization_validation.py` - 15个验证测试用例
+
+### Changed
+- 更新 README.md 添加错误处理示例代码
+
+### Notes
+- 测试统计: 291 tests (276 + 15) - 所有测试通过 ✓
+
 ## [1.15.0] - 2026-03-18
 
 ### Fixed

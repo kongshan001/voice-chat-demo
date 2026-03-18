@@ -77,6 +77,10 @@ class WhisperRecognizer(ISpeechRecognizer):
     """Whisper 语音识别实现"""
     
     def __init__(self, model_name: str = "base", device: str = "cpu"):
+        if not model_name:
+            raise ValueError("模型名称不能为空")
+        if device not in ("cpu", "cuda"):
+            raise ValueError(f"不支持的设备: {device}，仅支持 cpu 或 cuda")
         self.model_name = model_name
         self.device = device
         self.model = None
@@ -84,15 +88,40 @@ class WhisperRecognizer(ISpeechRecognizer):
     def load_model(self):
         """加载 Whisper 模型"""
         from faster_whisper import WhisperModel
-        self.model = WhisperModel(self.model_name, device=self.device, compute_type="int8")
+        try:
+            self.model = WhisperModel(self.model_name, device=self.device, compute_type="int8")
+        except Exception as e:
+            raise RuntimeError(f"加载 Whisper 模型失败: {e}") from e
     
     def transcribe(self, audio: np.ndarray) -> str:
-        """语音转文字"""
+        """语音转文字
+        
+        Args:
+            audio: 音频数据 (numpy array)
+            
+        Returns:
+            识别的文本
+            
+        Raises:
+            ValueError: 音频数据无效
+            RuntimeError: 模型加载或识别失败
+        """
+        # 验证音频输入
+        if audio is None or len(audio) == 0:
+            raise ValueError("音频数据不能为空")
+        
+        if not isinstance(audio, np.ndarray):
+            raise ValueError("音频必须是 numpy array")
+        
         if self.model is None:
             self.load_model()
-        segments, _ = self.model.transcribe(audio, language="zh")
-        text = "".join([seg.text for seg in segments])
-        return text.strip()
+        
+        try:
+            segments, _ = self.model.transcribe(audio, language="zh")
+            text = "".join([seg.text for seg in segments])
+            return text.strip()
+        except Exception as e:
+            raise RuntimeError(f"语音识别失败: {e}") from e
 
 
 class GLMChatService(IChatService):
@@ -103,6 +132,14 @@ class GLMChatService(IChatService):
     RETRY_DELAY = 1
     
     def __init__(self, api_key: str):
+        # 验证 api_key
+        if not api_key:
+            raise ValueError("API Key 不能为空")
+        if not isinstance(api_key, str):
+            raise ValueError("API Key 必须是字符串")
+        if len(api_key.strip()) == 0:
+            raise ValueError("API Key 不能仅包含空白字符")
+        
         from zhipuai import ZhipuAI
         self.client = ZhipuAI(api_key=api_key)
     

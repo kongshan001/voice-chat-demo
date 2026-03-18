@@ -268,6 +268,39 @@ conversation.add_assistant_message("你好，有什么可以帮您？")
 messages = conversation.get_messages()
 ```
 
+### 错误处理示例
+
+```python
+from services import WhisperRecognizer, GLMChatService
+from core import Config
+import numpy as np
+
+# 配置验证
+config = Config(api_key="your-key", max_history=-1)  # 无效的 max_history
+errors = config.validate()
+if errors:
+    print(f"配置错误: {errors}")
+
+# 服务初始化验证
+try:
+    recognizer = WhisperRecognizer("base", "invalid")  # 无效设备
+except ValueError as e:
+    print(f"参数错误: {e}")
+
+# 音频验证
+recognizer = WhisperRecognizer("base")
+try:
+    recognizer.transcribe(None)  # 空音频
+except ValueError as e:
+    print(f"音频错误: {e}")
+
+# API Key 验证
+try:
+    chat_service = GLMChatService("")  # 空 Key
+except ValueError as e:
+    print(f"API Key 错误: {e}")
+```
+
 ## 新增功能 (v1.1.0)
 
 ### API 重试机制

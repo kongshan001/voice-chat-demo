@@ -384,6 +384,14 @@ class Config:
         if not 0 <= self.temperature <= 2:
             errors.append(f"温度参数超出范围: {self.temperature}")
         
+        # 检查 max_history
+        if self.max_history < 0:
+            errors.append(f"max_history 不能为负数: {self.max_history}")
+        
+        # 检查 whisper_device
+        if self.whisper_device not in ("cpu", "cuda"):
+            errors.append(f"不支持的设备: {self.whisper_device}，仅支持 cpu 或 cuda")
+        
         if errors:
             logger.error(f"配置验证失败: {errors}")
         
