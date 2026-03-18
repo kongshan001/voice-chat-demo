@@ -3,6 +3,7 @@
 """
 import pytest
 from main import main
+from services import GLMChatService, DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES, DEFAULT_RETRY_DELAY
 
 
 class TestCLIParsingCombinations:
@@ -50,18 +51,12 @@ class TestGLMRetryMechanism:
     
     def test_retry_constants_exist(self):
         """测试重试常量定义"""
-        from main import GLMChatService
-        
-        assert hasattr(GLMChatService, 'MAX_RETRIES')
-        assert hasattr(GLMChatService, 'RETRY_DELAY')
-        assert GLMChatService.MAX_RETRIES == 3
-        assert GLMChatService.RETRY_DELAY == 1
+        assert DEFAULT_MAX_RETRIES == 3
+        assert DEFAULT_RETRY_DELAY == 1
     
     def test_default_timeout(self):
         """测试默认超时值"""
-        from main import GLMChatService
-        
-        assert GLMChatService.DEFAULT_TIMEOUT == 60
+        assert DEFAULT_TIMEOUT == 60
 
 
 class TestConfigValidation:

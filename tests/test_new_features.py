@@ -6,7 +6,7 @@ import asyncio
 from unittest.mock import Mock, AsyncMock, patch
 import numpy as np
 
-from services import GLMChatService, EdgeTTSService
+from services import GLMChatService, EdgeTTSService, DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES, DEFAULT_RETRY_DELAY
 from core import Config
 
 
@@ -27,12 +27,12 @@ class TestGLMServiceEdgeCases:
     
     def test_default_timeout_value(self):
         """测试默认超时值"""
-        assert GLMChatService.DEFAULT_TIMEOUT == 60
-        assert GLMChatService.MAX_RETRIES == 3
+        assert DEFAULT_TIMEOUT == 60
+        assert DEFAULT_MAX_RETRIES == 3
     
     def test_retry_delay_value(self):
         """测试重试延迟"""
-        assert GLMChatService.RETRY_DELAY == 1
+        assert DEFAULT_RETRY_DELAY == 1
 
 
 class TestEdgeTTSServiceEdgeCases:
@@ -64,7 +64,7 @@ class TestEdgeTTSServiceEdgeCases:
     
     def test_max_retries_constant(self):
         """测试重试常量"""
-        assert EdgeTTSService.MAX_RETRIES == 3
+        assert DEFAULT_MAX_RETRIES == 3
 
 
 class TestConfigEdgeCases:

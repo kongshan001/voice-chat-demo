@@ -4,6 +4,7 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 import aiohttp
+from services import EdgeTTSService, DEFAULT_MAX_RETRIES, DEFAULT_RETRY_DELAY
 
 
 class TestEdgeTTSRetryMechanism:
@@ -11,16 +12,12 @@ class TestEdgeTTSRetryMechanism:
     
     def test_retry_constants_exist(self):
         """测试重试常量存在"""
-        from main import EdgeTTSService
-        assert hasattr(EdgeTTSService, 'MAX_RETRIES')
-        assert hasattr(EdgeTTSService, 'RETRY_DELAY')
-        assert EdgeTTSService.MAX_RETRIES == 3
+        assert DEFAULT_MAX_RETRIES == 3
+        assert DEFAULT_RETRY_DELAY == 1
     
     @pytest.mark.asyncio
     async def test_synthesize_success_first_try(self):
         """测试首次成功"""
-        from main import EdgeTTSService
-        
         service = EdgeTTSService()
         service.communicate = MagicMock()
         
@@ -37,8 +34,6 @@ class TestEdgeTTSRetryMechanism:
     @pytest.mark.asyncio
     async def test_synthesize_retry_on_connection_error(self):
         """测试连接错误时重试"""
-        from main import EdgeTTSService
-        
         service = EdgeTTSService()
         
         # Mock communicate to raise connection error then succeed
@@ -58,8 +53,6 @@ class TestEdgeTTSRetryMechanism:
     @pytest.mark.asyncio
     async def test_synthesize_all_retries_fail(self):
         """测试所有重试都失败"""
-        from main import EdgeTTSService
-        
         service = EdgeTTSService()
         
         mock_comm = AsyncMock()

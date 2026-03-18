@@ -12,6 +12,7 @@ import sys
 import argparse
 import asyncio
 import time
+import subprocess
 from typing import Optional, Callable, List, Dict, Any
 import numpy as np
 
@@ -148,12 +149,20 @@ def play_audio(file_path):  # pragma: no cover
             import winsound
             winsound.PlaySound(file_path, winsound.SND_FILENAME)
         else:
-            # 尝试多个播放器
-            result = os.system(f"afplay {file_path} 2>/dev/null")
-            if result != 0:
-                result = os.system(f"aplay {file_path} 2>/dev/null")
-            if result != 0:
-                raise RuntimeError("音频播放失败，请检查音频设备")
+            # 尝试多个播放器 (使用 subprocess)
+            players = ["afplay", "aplay", "play"]
+            for player in players:
+                try:
+                    subprocess.run(
+                        [player, file_path],
+                        capture_output=True,
+                        timeout=30,
+                        check=False
+                    )
+                    return  # 成功播放
+                except (FileNotFoundError, subprocess.TimeoutExpired):
+                    continue
+            raise RuntimeError("音频播放失败，请检查音频设备")
     except Exception as e:
         if isinstance(e, (FileNotFoundError, RuntimeError)):
             raise

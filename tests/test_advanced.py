@@ -15,7 +15,7 @@ from core import (
     ChatError,
     SynthesisError
 )
-from services import GLMChatService, EdgeTTSService
+from services import GLMChatService, EdgeTTSService, DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
 
 class TestConversationManagerAdvanced:
@@ -236,10 +236,10 @@ class TestGLMServiceAdvanced:
         service = GLMChatService(api_key="test-key")
         
         # 验证默认超时
-        assert service.DEFAULT_TIMEOUT == 60
+        assert DEFAULT_TIMEOUT == 60
         
         # 验证重试次数
-        assert service.MAX_RETRIES == 3
+        assert DEFAULT_MAX_RETRIES == 3
     
     def test_chat_with_custom_timeout(self):
         """测试自定义超时 - 验证参数传递"""

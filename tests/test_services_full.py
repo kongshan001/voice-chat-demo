@@ -14,7 +14,10 @@ from services import (
     ISpeechRecognizer,
     IChatService,
     ITTSService,
-    IAudioRecorder
+    IAudioRecorder,
+    DEFAULT_TIMEOUT,
+    DEFAULT_MAX_RETRIES,
+    DEFAULT_RETRY_DELAY
 )
 
 
@@ -47,8 +50,8 @@ class TestGLMChatService:
         """测试初始化"""
         service = GLMChatService("test-key")
         assert service.client is not None
-        assert service.DEFAULT_TIMEOUT == 60
-        assert service.MAX_RETRIES == 3
+        assert DEFAULT_TIMEOUT == 60
+        assert DEFAULT_MAX_RETRIES == 3
     
     def test_chat_empty_messages(self):
         """测试空消息列表"""
@@ -59,11 +62,11 @@ class TestGLMChatService:
     
     def test_retry_delay_constant(self):
         """测试重试延迟常量"""
-        assert GLMChatService.RETRY_DELAY == 1
+        assert DEFAULT_RETRY_DELAY == 1
     
     def test_max_retries_constant(self):
         """测试最大重试次数常量"""
-        assert GLMChatService.MAX_RETRIES == 3
+        assert DEFAULT_MAX_RETRIES == 3
 
 
 class TestEdgeTTSService:
@@ -101,8 +104,8 @@ class TestEdgeTTSService:
     
     def test_retry_constants(self):
         """测试重试常量"""
-        assert EdgeTTSService.MAX_RETRIES == 3
-        assert EdgeTTSService.RETRY_DELAY == 1
+        assert DEFAULT_MAX_RETRIES == 3
+        assert DEFAULT_RETRY_DELAY == 1
 
 
 class TestServiceInterfaces:
@@ -173,10 +176,10 @@ class TestServiceRetryMechanism:
     
     def test_glm_retry_constants(self):
         """测试 GLM 重试常量"""
-        assert GLMChatService.MAX_RETRIES == 3
-        assert GLMChatService.RETRY_DELAY == 1
+        assert DEFAULT_MAX_RETRIES == 3
+        assert DEFAULT_RETRY_DELAY == 1
     
     def test_edge_tts_retry_constants(self):
         """测试 Edge TTS 重试常量"""
-        assert EdgeTTSService.MAX_RETRIES == 3
-        assert EdgeTTSService.RETRY_DELAY == 1
+        assert DEFAULT_MAX_RETRIES == 3
+        assert DEFAULT_RETRY_DELAY == 1

@@ -23,6 +23,12 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
+# ============ 共享常量 ============
+DEFAULT_TIMEOUT = 60
+DEFAULT_MAX_RETRIES = 3
+DEFAULT_RETRY_DELAY = 1
+
+
 # ============ 接口定义 ============
 
 class ISpeechRecognizer(ABC):
@@ -127,10 +133,6 @@ class WhisperRecognizer(ISpeechRecognizer):
 class GLMChatService(IChatService):
     """GLM 对话服务实现"""
     
-    DEFAULT_TIMEOUT = 60
-    MAX_RETRIES = 3
-    RETRY_DELAY = 1
-    
     def __init__(self, api_key: str):
         # 验证 api_key
         if not api_key:
@@ -151,8 +153,8 @@ class GLMChatService(IChatService):
         if not messages:
             raise ValueError("消息列表不能为空")
         
-        timeout = timeout or self.DEFAULT_TIMEOUT
-        max_retries = max_retries if max_retries is not None else self.MAX_RETRIES
+        timeout = timeout or DEFAULT_TIMEOUT
+        max_retries = max_retries if max_retries is not None else DEFAULT_MAX_RETRIES
         last_error = None
         
         for attempt in range(max_retries):
@@ -162,7 +164,7 @@ class GLMChatService(IChatService):
                 last_error = e
                 if attempt < max_retries - 1:
                     logger.warning(f"API 请求失败 (尝试 {attempt + 1}/{max_retries}), 重试中...")
-                    time.sleep(self.RETRY_DELAY)
+                    time.sleep(DEFAULT_RETRY_DELAY)
                 continue
             except Exception as e:
                 raise RuntimeError(f"GLM API 调用失败: {e}") from e
@@ -210,9 +212,6 @@ class GLMChatService(IChatService):
 class EdgeTTSService(ITTSService):
     """Edge TTS 服务实现"""
     
-    MAX_RETRIES = 3
-    RETRY_DELAY = 1
-    
     def __init__(self, voice: str = "zh-CN-XiaoxiaoNeural"):
         import edge_tts
         self.voice = voice
@@ -225,16 +224,16 @@ class EdgeTTSService(ITTSService):
             raise ValueError("合成文本不能为空")
         
         last_error = None
-        for attempt in range(self.MAX_RETRIES):
+        for attempt in range(DEFAULT_MAX_RETRIES):
             try:
                 return await self._do_synthesize(text, output_path)
             except (self._exceptions.NoAudioReceived, self._exceptions.WebSocketError, 
                     self._exceptions.UnexpectedResponse, ConnectionError, OSError,
                     aiohttp.ClientError) as e:
                 last_error = e
-                if attempt < self.MAX_RETRIES - 1:
-                    logger.warning(f"TTS 请求失败 (尝试 {attempt + 1}/{self.MAX_RETRIES}), 重试中...")
-                    await asyncio.sleep(self.RETRY_DELAY)
+                if attempt < DEFAULT_MAX_RETRIES - 1:
+                    logger.warning(f"TTS 请求失败 (尝试 {attempt + 1}/{DEFAULT_MAX_RETRIES}), 重试中...")
+                    await asyncio.sleep(DEFAULT_RETRY_DELAY)
                 continue
             except Exception as e:
                 raise RuntimeError(f"Edge TTS 合成失败: {e}") from e
@@ -250,6 +249,10 @@ class EdgeTTSService(ITTSService):
 
 # 导出所有
 __all__ = [
+    # 共享常量
+    'DEFAULT_TIMEOUT',
+    'DEFAULT_MAX_RETRIES',
+    'DEFAULT_RETRY_DELAY',
     # 接口
     'ISpeechRecognizer',
     'IChatService',
