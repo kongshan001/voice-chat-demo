@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.12.0] - 2026-03-18
+
+### Notes
+- 项目优化检查完成 ✓
+- 测试统计: 244 tests - 所有测试通过 ✓
+- 代码质量分析: 核心模块结构清晰，错误处理完善
+- 依赖包版本检查: 所有包均为最新稳定版
+
 ## [1.11.0] - 2026-03-18
 
 ### Added
