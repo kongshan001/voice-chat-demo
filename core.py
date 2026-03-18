@@ -389,6 +389,48 @@ class Config:
         
         return errors
     
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        将配置转换为字典
+        
+        Returns:
+            配置字典 (api_key 会被 masked)
+        """
+        return {
+            "api_key": "***" if self.api_key else "",
+            "whisper_model": self.whisper_model,
+            "whisper_device": self.whisper_device,
+            "sample_rate": self.sample_rate,
+            "channels": self.channels,
+            "vad_aggressiveness": self.vad_aggressiveness,
+            "tts_voice": self.tts_voice,
+            "temperature": self.temperature,
+            "max_history": self.max_history,
+            "log_level": self.log_level,
+        }
+    
+    @classmethod
+    def from_env(cls) -> "Config":
+        """
+        从环境变量创建配置
+        
+        Returns:
+            Config 实例
+        """
+        import os
+        return cls(
+            api_key=os.getenv("ZHIPU_API_KEY", ""),
+            whisper_model=os.getenv("WHISPER_MODEL", "base"),
+            whisper_device=os.getenv("WHISPER_DEVICE", "cpu"),
+            sample_rate=int(os.getenv("SAMPLE_RATE", "16000")),
+            channels=int(os.getenv("CHANNELS", "1")),
+            vad_aggressiveness=int(os.getenv("VAD_AGGRESSIVENESS", "3")),
+            tts_voice=os.getenv("TTS_VOICE", "zh-CN-XiaoxiaoNeural"),
+            temperature=float(os.getenv("TEMPERATURE", "0.7")),
+            max_history=int(os.getenv("MAX_HISTORY", "20")),
+            log_level=os.getenv("LOG_LEVEL", "INFO"),
+        )
+    
     def __repr__(self) -> str:
         mask = "***" if self.api_key else "(empty)"
         return f"Config(api_key={mask}, whisper_model={self.whisper_model}, tts_voice={self.tts_voice})"

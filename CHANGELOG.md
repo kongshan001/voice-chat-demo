@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.13.0] - 2026-03-18
+
+### Added
+- 新增 `Config.to_dict()` 方法 - 配置序列化为字典 (API Key 自动 mask)
+- 新增 `Config.from_env()` 类方法 - 从环境变量创建配置
+- 新增 `tests/test_config_enhancements.py` - 5个配置增强测试用例
+
+### Notes
+- 测试统计: 275 tests (270 + 5) - 所有测试通过 ✓
+
 ## [1.12.0] - 2026-03-18
 
 ### Notes
