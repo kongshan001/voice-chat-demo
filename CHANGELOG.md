@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.14.0] - 2026-03-18
+
+### Changed
+- 清理 main.py 中已注释的重复代码
+- services.py 导出类型别名 (Messages, StreamCallback)
+- 添加 pyproject.toml 版本号
+
+### Notes
+- 测试统计: 276 tests - 所有测试通过 ✓
+
 ## [1.13.0] - 2026-03-18
 
 ### Added

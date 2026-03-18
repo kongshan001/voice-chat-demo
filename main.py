@@ -46,19 +46,9 @@ def configure_services(
         _tts_service = tts_service
 
 
-# ============ 语音识别实现 ============
-# 已移至 services.py，此处仅保留类型别名以保持兼容性
-# from services import WhisperRecognizer  # 实际使用services.py中的实现
-
-
-# ============ GLM 对话实现 ============
-# 已移至 services.py
-# from services import GLMChatService
-
-
-# ============ Edge TTS 实现 ============
-# 已移至 services.py
-# from services import EdgeTTSService
+# ============ 服务实现说明 ============
+# 所有服务实现已移至 services.py
+# 此处导入是为了保持向后兼容性
 
 
 # ============ VAD 录音 ============

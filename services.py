@@ -211,12 +211,19 @@ class EdgeTTSService(ITTSService):
 # 导出所有
 __all__ = [
     # 接口
-    'ISpeechRecognizer', 
-    'IChatService', 
-    'ITTSService', 
+    'ISpeechRecognizer',
+    'IChatService',
+    'ITTSService',
     'IAudioRecorder',
     # 实现
     'WhisperRecognizer',
     'GLMChatService',
     'EdgeTTSService',
+    # 类型别名 (用于类型注解)
+    'Messages',
+    'StreamCallback',
 ]
+
+# 类型别名 (供项目内部使用)
+Messages = List[Dict[str, str]]
+StreamCallback = Callable[[str], None]

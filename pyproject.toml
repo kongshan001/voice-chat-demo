@@ -1,3 +1,9 @@
+[project]
+name = "voice-chat-demo"
+version = "1.14.0"
+description = "语音识别 + GLM 对话 Demo"
+requires-python = ">=3.10"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
