@@ -1,6 +1,7 @@
 # 🎙️ Voice Chat Demo
 
 [![Tests](https://github.com/kongshan001/voice-chat-demo/actions/workflows/test.yml/badge.svg)](https://github.com/kongshan001/voice-chat-demo/actions)
+[![Coverage](https://img.shields.io/codecov/c/github/kongshan001/voice-chat-demo?logo=codecov)
 [![Python Version](https://img.shields.io/badge/python-3.12+-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
