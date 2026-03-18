@@ -242,6 +242,11 @@ class EdgeTTSService(ITTSService):
     
     async def _do_synthesize(self, text: str, output_path: str) -> str:
         """执行 TTS 合成"""
+        # 再次清理文本，确保没有空白字符
+        text = text.strip()
+        if not text:
+            raise ValueError("合成文本不能为空")
+        
         communicate = self.communicate(text, self.voice)
         await communicate.save(output_path)
         return output_path

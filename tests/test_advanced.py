@@ -211,12 +211,12 @@ class TestEdgeTTSServiceAdvanced:
             mock_comm.return_value = AsyncMock()
             mock_comm.return_value.save = AsyncMock()
             
-            # 当前实现会保持原样
+            # 当前实现会 trim 两端空白
             await service.synthesize("  Hello World  ", "/tmp/test.mp3")
             
-            # 验证communicate被调用时文本保持原样
+            # 验证communicate被调用时文本被trim
             call_args = mock_comm.call_args
-            assert call_args[0][0] == "  Hello World  "
+            assert call_args[0][0] == "Hello World"
 
 
 class TestGLMServiceAdvanced:

@@ -373,7 +373,9 @@ class Config:
             errors.append(f"不支持的 TTS 语音: {self.tts_voice}")
         
         # 检查采样率
-        if self.sample_rate not in [8000, 16000, 22050, 44100, 48000]:
+        if self.sample_rate <= 0:
+            errors.append(f"采样率必须为正数: {self.sample_rate}")
+        elif self.sample_rate not in [8000, 16000, 22050, 44100, 48000]:
             logger.warning(f"非标准采样率: {self.sample_rate}")
         
         # 检查 VAD 激进度

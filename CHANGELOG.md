@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.18.0] - 2026-03-18
+
+### Added
+- 新增负采样率验证 (`test_validate_negative_sample_rate`)
+- 测试统计: 307 tests - 所有测试通过 ✓
+
+### Fixed
+- EdgeTTSService._do_synthesize 现在会 trim 文本两端空白，提升 TTS 稳定性
+- Config.validate() 新增负采样率检查
+
+### Notes
+- 代码优化：增强边缘情况处理
+
 ## [1.17.0] - 2026-03-18
 
 ### Added

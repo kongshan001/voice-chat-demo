@@ -73,6 +73,15 @@ class TestConfigValidation:
         # 应该没有错误，但有警告
         assert "API Key" not in str(errors)
     
+    def test_validate_negative_sample_rate(self):
+        """测试负采样率被拒绝"""
+        from core import Config
+        
+        config = Config(api_key="test-key", sample_rate=-16000)
+        errors = config.validate()
+        
+        assert any("采样率" in str(e) for e in errors)
+    
     def test_validate_vad_out_of_range(self):
         """测试 VAD 参数越界"""
         from core import Config
