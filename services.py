@@ -180,6 +180,7 @@ class EdgeTTSService(ITTSService):
         import edge_tts
         self.voice = voice
         self.communicate = edge_tts.Communicate
+        self._exceptions = edge_tts.exceptions
     
     async def synthesize(self, text: str, output_path: str) -> str:
         """语音合成 (支持重试)"""
@@ -190,7 +191,9 @@ class EdgeTTSService(ITTSService):
         for attempt in range(self.MAX_RETRIES):
             try:
                 return await self._do_synthesize(text, output_path)
-            except (aiohttp.ClientError, ConnectionError) as e:
+            except (self._exceptions.NoAudioReceived, self._exceptions.WebSocketError, 
+                    self._exceptions.UnexpectedResponse, ConnectionError, OSError,
+                    aiohttp.ClientError) as e:
                 last_error = e
                 if attempt < self.MAX_RETRIES - 1:
                     logger.warning(f"TTS 请求失败 (尝试 {attempt + 1}/{self.MAX_RETRIES}), 重试中...")

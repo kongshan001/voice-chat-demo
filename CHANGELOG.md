@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.15.0] - 2026-03-18
+
+### Fixed
+- 修复 EdgeTTSService 异常处理 - 使用正确的 edge_tts.exceptions 类型
+- EdgeTTSService 现在捕获 NoAudioReceived, WebSocketError, UnexpectedResponse 等特定异常
+- 保持与 aiohttp.ClientError 的兼容性以支持现有测试
+
+### Changed
+- 更新 README.md 测试统计 (199 → 276)
+
+### Notes
+- 测试统计: 276 tests - 所有测试通过 ✓
+
 ## [1.14.0] - 2026-03-18
 
 ### Changed
