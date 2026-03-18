@@ -102,14 +102,14 @@ python main.py --optimize-for-pi
 
 ```
 voice-chat-demo/
-├── core.py              # 核心业务逻辑
+├── core.py               # 核心业务逻辑
 ├── services.py           # 服务接口定义
 ├── main.py               # 主程序
-├── requirements.txt     # 生产依赖
-├── requirements-dev.txt # 开发依赖
-├── pyproject.toml       # 项目配置
-├── tests/               # 测试目录
-└── README.md            # 说明文档
+├── requirements.txt      # 生产依赖
+├── requirements-dev.txt  # 开发依赖
+├── pyproject.toml        # 项目配置
+├── tests/                # 测试目录
+└── README.md             # 说明文档
 ```
 
 ## 测试

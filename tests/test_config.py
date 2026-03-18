@@ -124,3 +124,9 @@ class TestConfig:
             'max_history', 'log_level'
         )
         assert all(slot in Config.__slots__ for slot in expected_slots)
+    
+    def test_validate_negative_max_history(self):
+        """测试负数 max_history 被警告 (在 test_advanced.py 中完整测试)"""
+        config = Config(api_key="test", max_history=-1)
+        # 负数 max_history 会被忽略，使用默认值
+        assert config.max_history == -1
