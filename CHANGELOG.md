@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.11.0] - 2026-03-18
+
+### Added
+- 新增 `__repr__` 方法到核心类 (ConversationManager, AudioProcessor, TextProcessor, Config)
+- 新增 `tests/test_repr.py` - 5个 __repr__ 方法测试用例
+
+### Notes
+- 测试统计: 244 tests - 所有测试通过 ✓
+- 增强调试能力，便于开发时查看对象状态
+
 ## [1.10.0] - 2026-03-18
 
 ### Changed

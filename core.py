@@ -70,6 +70,9 @@ class ConversationManager:
     EXIT_KEYWORDS_ZH = ["再见", "退出", "拜拜", "结束"]
     EXIT_KEYWORDS_EN = ["stop", "quit", "exit", "bye"]
     
+    def __repr__(self) -> str:
+        return f"ConversationManager(history_len={len(self.history)}, max_history={self.max_history})"
+    
     # 预编译英文退出关键词正则 (提高性能)
     _EXIT_EN_PATTERNS = [
         re.compile(rf'(^|\s){keyword}($|\s)', re.IGNORECASE)
@@ -156,6 +159,9 @@ class AudioProcessor:
         
         self.sample_rate = sample_rate
         self.channels = channels
+    
+    def __repr__(self) -> str:
+        return f"AudioProcessor(sample_rate={self.sample_rate}, channels={self.channels})"
     
     def normalize_audio(self, audio: np.ndarray) -> np.ndarray:
         """标准化音频
@@ -265,6 +271,9 @@ class TextProcessor:
         if not text:
             return False
         return bool(re.search(r'[\u4e00-\u9fff]', text))
+    
+    def __repr__(self) -> str:
+        return "TextProcessor()"
 
 
 class Config:
@@ -379,3 +388,7 @@ class Config:
             logger.error(f"配置验证失败: {errors}")
         
         return errors
+    
+    def __repr__(self) -> str:
+        mask = "***" if self.api_key else "(empty)"
+        return f"Config(api_key={mask}, whisper_model={self.whisper_model}, tts_voice={self.tts_voice})"
