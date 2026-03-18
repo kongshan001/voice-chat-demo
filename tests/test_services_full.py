@@ -5,6 +5,7 @@ import pytest
 from unittest.mock import Mock, patch, AsyncMock, MagicMock
 import numpy as np
 import asyncio
+import aiohttp
 
 from services import (
     WhisperRecognizer, 

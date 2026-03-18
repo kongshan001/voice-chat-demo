@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 # 类型别名
 Messages = List[Dict[str, str]]
-StreamCallback = Optional[Callable[[str], None]]
+StreamCallback = Callable[[str], None]
 
 # 服务提供者 (可替换为 mock)
 _speech_recognizer: Optional[ISpeechRecognizer] = None
@@ -350,16 +350,20 @@ def main(argv=None):  # pragma: no cover
                 continue
             
             # 4. 语音合成
+            loop = None
             try:
-                input("🔊 按 Enter 播放语音回复...")
-            except EOFError:
-                break
-            print("🔊 播放中...")
-            
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            audio_file = loop.run_until_complete(app.synthesize_speech(accumulated_reply, "/tmp/reply.mp3"))
-            loop.close()
+                try:
+                    input("🔊 按 Enter 播放语音回复...")
+                except EOFError:
+                    break
+                print("🔊 播放中...")
+                
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                audio_file = loop.run_until_complete(app.synthesize_speech(accumulated_reply, "/tmp/reply.mp3"))
+            finally:
+                if loop:
+                    loop.close()
             
             play_audio(audio_file)
             print("-" * 50)
